@@ -1,9 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Calculation Result</title>
+    <title>Settlement Results</title>
+    <style>
+        body { font-family: sans-serif; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        td, th { border: 1px solid #ddd; padding: 8px; }
+    </style>
 </head>
 <body>
-    <p>Reduced Payment Offer: ${{ result }}</p>
+    <h1>Debt Settlement Results</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Payer</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction[0] }}</td>
+                <td>{{ transaction[1] }}</td>
+                <td>{{ transaction[2] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
