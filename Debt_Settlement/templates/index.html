@@ -1,21 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Debt Settlement Calculator</title>
+    <title>Friendly Debt Settlement</title>
+    <style>
+        body { font-family: sans-serif; }
+        .debt-entry { margin-bottom: 15px; }
+    </style>
 </head>
 <body>
-    <h1>Debt Settlement Calculator</h1>
+    <h1>Friendly Debt Settlement</h1>
+
     <form method="POST">
-        <label for="debt">Total Debt:</label>
-        <input type="number" id="debt" name="debt" required><br>
-
-        <label for="interest">Interest Rate (Annual %):</label>
-        <input type="number" id="interest" name="interest" required><br>
-
-        <label for="settlement">Settlement Offer (%):</label>
-        <input type="number" id="settlement" name="settlement" required><br>
-
+        <div id="debt-entries">
+            <div class="debt-entry">
+                <label for="name_1">Name:</label>
+                <input type="text" id="name_1" name="name_1" required><br>
+                </div>
+        </div>
+        <button type="button" onclick="addDebtField()">Add Person</button>
         <button type="submit">Calculate</button>
     </form>
+
+    <script>
+        let count = 2;
+        function addDebtField() {
+            const container = document.getElementById('debt-entries');
+            const newEntry = document.createElement('div');
+            newEntry.classList.add('debt-entry');
+
+            newEntry.innerHTML = `
+                <label for="name_${count}">Name:</label>
+                <input type="text" id="name_${count}" name="name_${count}" required><br>
+            `;
+
+            container.appendChild(newEntry);
+            count++;
+        }
+    </script>
 </body>
 </html>
