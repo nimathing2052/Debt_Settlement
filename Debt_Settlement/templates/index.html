@@ -13,24 +13,32 @@
     <form method="POST">
         <div id="debt-entries">
             <div class="debt-entry">
-                <label for="name_1">Name:</label>
-                <input type="text" id="name_1" name="name_1" required><br>
-                </div>
+                <label for="debtor0">Debtor:</label>
+                <input type="text" id="debtor0" name="debtor0" required>
+                <label for="creditor0">Creditor:</label>
+                <input type="text" id="creditor0" name="creditor0" required>
+                <label for="amount0">Amount:</label>
+                <input type="number" id="amount0" name="amount0" required step="0.01"><br>
+            </div>
         </div>
-        <button type="button" onclick="addDebtField()">Add Person</button>
+        <button type="button" onclick="addDebtField()">Add Another Debt</button>
         <button type="submit">Calculate</button>
     </form>
 
     <script>
-        let count = 2;
+        let count = 1;
         function addDebtField() {
             const container = document.getElementById('debt-entries');
             const newEntry = document.createElement('div');
             newEntry.classList.add('debt-entry');
 
             newEntry.innerHTML = `
-                <label for="name_${count}">Name:</label>
-                <input type="text" id="name_${count}" name="name_${count}" required><br>
+                <label for="debtor${count}">Debtor:</label>
+                <input type="text" id="debtor${count}" name="debtor${count}" required>
+                <label for="creditor${count}">Creditor:</label>
+                <input type="text" id="creditor${count}" name="creditor${count}" required>
+                <label for="amount${count}">Amount:</label>
+                <input type="number" id="amount${count}" name="amount${count}" required step="0.01"><br>
             `;
 
             container.appendChild(newEntry);
