@@ -85,26 +85,20 @@ def debt_calculator():
     else:
         return render_template('index.html')
 
-@app.route("/login"):
-def login(
-        title='Login Screen'
-        return render_template('login.html',
-                               title=title)
-)
+@app.route("/login")
+def login(title='Login Screen'):
+    return render_template('login.html',
+                           title=title)
 
-@app.route("/user_profile"):
-def user_profile(
-        title='Profile page'
-        return render_template('user_profile.html',
-                               title=title)
-)
+@app.route("/user_profile")
+def user_profile(title='Profile page'):
+    return render_template('user_profile.html',
+                           title=title)
 
-@app.route("/debt_view"):
-def debt_view(
-        title='See all your debts, past and present!'
+@app.route("/debt_view")
+def debt_view(title='See all your debts, past and present!'):
         return render_template('debt_view.html',
                                title=title)
-)
 
 
 if __name__ == '__main__':
