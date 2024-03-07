@@ -14,6 +14,7 @@ def settle_debts(debts):
 
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route("/home")
 def debt_calculator():
     if request.method == 'POST':
         debts = {}
@@ -35,6 +36,20 @@ def debt_calculator():
         return render_template('result.html', transactions=transactions)
     else:
         return render_template('index.html')
+
+@app.route("/login"):
+def login(
+        title='Login Screen'
+        return render_template('login.html',
+                               title=title)
+)
+
+@app.route("/user_profile"):
+def user_profile(
+        title='Profile page'
+        return render_template('user_profile.html',
+                               title=title)
+)
 
 
 if __name__ == '__main__':
