@@ -24,41 +24,41 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 # USER DATABSE
 # SQLAlchemy database instance
 db_user = SQLAlchemy(app)
+
+# Ensure the app is aware of the database commands
 app.app_context().push()
+
 # Defining a model
 class UserInput(db_user.Model):
-    user_id = db.Column(db.Integer, primary_key=True) #HOW TO MAKE THIS SO IT IS AUTO ASSIGNED, NOT INPUT?
-    username_email = db.Column(db.String(20),nullable=False)
-    first_name = db.Column(db.String(20),nullable=False)
-    last_name = db.Column(db.String(20),nullable=False)
-    password = db.Column(db.String(db.String(20),nullable=False)
-    debts = db.relationship('DebtItem', backref='debt_id', lazy=True)
+    user_id = db_user.Column(db_user.Integer, primary_key=True)
+    username_email = db_user.Column(db_user.String(20), nullable=False)
+    first_name = db_user.Column(db_user.String(20), nullable=False)
+    last_name = db_user.Column(db_user.String(20), nullable=False)
+    password = db_user.Column(db_user.String(20), nullable=False)
+    debts = db_user.relationship('DebtItem', backref='user', lazy=True)
 
     def __repr__(self):
-        return f"Users('{self.username_email}')"
+        return f"User('{self.username_email}', '{self.first_name}', '{self.last_name}')"
+
 
 # DEBT DATABASE
-# SQLAlchemy database instance
 db_debt = SQLAlchemy(app)
+
 app.app_context().push()
 # Defining a model
 class DebtItem(db_debt.Model):
-    debt_id = db.Column(db.Integer, primary_key=True) #HOW TO MAKE THIS SO IT IS AUTO ASSIGNED, NOT INPUT?
-    item_name = db.Column(db.String(50), nullable=False)
-    payer = db.Column(db.String(50), nullable=False)
-    debtor_1 = db.Column(db.String(50),nullable=False)
-    debtor_2 = db.Column(db.String(50),nullable=True)
-    debtor_3 = db.Column(db.String(50),nullable=True)
-    monetary_value = db.Column(db.Integer(50), nullable=False) # HOW TO CHANGE TO FLOATING POINT?
-    group_id = db.Column(db.String(50), nullable=False)
-    #settle_debts
-    #currency
-    time_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    debt_id = db_debt.Column(db_debt.Integer, primary_key=True) # Auto assigned
+    item_name = db_debt.Column(db_debt.String(50), nullable=False)
+    payer = db_debt.Column(db_debt.String(50), nullable=False)
+    debtor_1 = db_debt.Column(db_debt.String(50), nullable=False)
+    debtor_2 = db_debt.Column(db_debt.String(50), nullable=True)
+    debtor_3 = db_debt.Column(db_debt.String(50), nullable=True)
+    monetary_value = db_debt.Column(db_debt.Float, nullable=False) # Changed to floating point
+    group_id = db_debt.Column(db_debt.String(50), nullable=False)
+    time_date = db_debt.Column(db_debt.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"Debts('{self.item_name}', '{self.monetary_value}')"
-
-
+        return f"DebtItem('{self.item_name}', '{self.monetary_value}')"
 
 # PAGES ----------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
