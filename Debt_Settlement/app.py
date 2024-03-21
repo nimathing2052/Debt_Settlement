@@ -71,7 +71,7 @@ def home():
             amount = float(request.form['amount'])
             # In a real application, you would update the debts data structure here
             flash('This is a simulated action. Debt was not actually added.', 'info')
-        return render_template('index.html', debts=debts, user_name=session.get('user_name'))
+        return render_template('index.html', user_name=session.get('user_name'))
     else:
         return redirect(url_for('login'))
 
