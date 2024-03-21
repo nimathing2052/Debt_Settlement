@@ -54,13 +54,6 @@ class DebtItem(db.Model):
 if __name__ == "__main__":
     db.create_all() 
 
-# Simulated data store - DEPRECATED
-# users = {'user@example.com': {'password': 'password123', 'name': 'John Doe', 'id': 1}}
-# debts = [
-#    {'id': 1, 'item_name': 'Lunch', 'amount': 10.5, 'creditor_id': 1, 'debtor_id': 2, 'timestamp': '2021-09-01'},
-#    {'id': 2, 'item_name': 'Coffee', 'amount': 4.75, 'creditor_id': 2, 'debtor_id': 1, 'timestamp': '2021-09-02'},
-#]
-
 # PAGES ----------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/home', methods=['GET', 'POST'])
@@ -69,7 +62,7 @@ def home():
         if request.method == 'POST':
             item_name = request.form['item_name']
             amount = float(request.form['amount'])
-            # In a real application, you would update the debts data structure here
+            # update the debts data structure here
             flash('This is a simulated action. Debt was not actually added.', 'info')
         return render_template('index.html', user_name=session.get('user_name'))
     else:
@@ -89,10 +82,8 @@ def register():
             flash('Email already registered.', 'warning')
             return redirect(url_for('register'))
         
-        # Hash the password
         password_hash = generate_password_hash(password)
         
-        # Create new user with hashed password
         new_user = User(email=email, password_hash=password_hash, first_name=first_name, last_name=last_name)
         db.session.add(new_user)
         db.session.commit()
@@ -111,7 +102,7 @@ def login():
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id  
             flash('You have successfully logged in!', 'success')
-            return redirect(url_for('user_profile'))  
+            return redirect(url_for('home'))  
         else:
             flash('Invalid email or password.', 'danger')
     return render_template('login.html')
@@ -124,6 +115,11 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route("/user_profile")
+def user_profile(title='Profile page'):
+    return render_template('user_profile.html',
+                           title=title)
+
 @app.route('/settle_debts')
 def settle_debts_view():
     if 'user_id' in session:
@@ -133,10 +129,6 @@ def settle_debts_view():
     else:
         return render_template('index.html')
 
-@app.route("/user_profile")
-def user_profile(title='Profile page'):
-    return render_template('user_profile.html',
-                           title=title)
 
 @app.route('/debt_view')
 def show_debts():
@@ -153,7 +145,7 @@ def show_debts():
     else:
         message = None  # or any logic you want when there are debts
 
-    return render_template('debts.html', debts=debts, message=message)
+    return render_template('debt_view.html', debts=debts, message=message)
 
 
 if __name__ == "__main__":
