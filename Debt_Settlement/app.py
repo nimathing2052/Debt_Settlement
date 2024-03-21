@@ -1,7 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import select, text
+from werkzeug.security import check_password_hash, generate_password_hash
+
+
 
 # APP INSTANCE
 app = Flask(__name__)
@@ -16,19 +20,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 # SQLAlchemy database instance
 db = SQLAlchemy(app)
 
+
 # Ensure the app is aware of the database commands
 app.app_context().push()
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username_email = db.Column(db.String(20), unique=True, nullable=False) 
+    email = db.Column(db.String(20), unique=True, nullable=False) 
     first_name = db.Column(db.String(20), nullable=False)
     last_name = db.Column(db.String(20), nullable=False)
-    password = db.Column(db.String(60), nullable=False) 
+    password_hash = db.Column(db.String(60), nullable=False) 
     debts = db.relationship('DebtItem', backref='user', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.username_email}', '{self.first_name}', '{self.last_name}')"
+        return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
 
 # Define the DebtItem model
 class DebtItem(db.Model):
@@ -58,6 +63,7 @@ if __name__ == "__main__":
 
 # PAGES ----------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     if 'user_id' in session:
         if request.method == 'POST':
@@ -69,19 +75,47 @@ def home():
     else:
         return redirect(url_for('login'))
 
-@app.route("/login", methods=['GET', 'POST'])
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email already registered.', 'warning')
+            return redirect(url_for('register'))
+        
+        # Hash the password
+        password_hash = generate_password_hash(password)
+        
+        # Create new user with hashed password
+        new_user = User(email=email, password_hash=password_hash, first_name=first_name, last_name=last_name)
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Account created successfully!', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        if email in users and users[email]['password'] == password:
-            session['user_id'] = users[email]['id']
-            session['user_name'] = users[email]['name']
-            flash('You were successfully logged in', 'success')
-            return redirect(url_for('home'))
+        user = User.query.filter_by(email=email).first()
+        
+        if user and check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id  
+            flash('You have successfully logged in!', 'success')
+            return redirect(url_for('user_profile'))  
         else:
-            flash('Login failed. Check your credentials', 'danger')
+            flash('Invalid email or password.', 'danger')
     return render_template('login.html')
+
 
 @app.route("/logout")
 def logout():
@@ -104,11 +138,25 @@ def user_profile(title='Profile page'):
     return render_template('user_profile.html',
                            title=title)
 
-@app.route("/debt_view")
-def debt_view(title='See all your debts, past and present!'):
-        return render_template('debt_view.html',
-                               title=title)
+@app.route('/debt_view')
+def show_debts():
+    try:
+        # This is where you would normally fetch your debts, e.g., from a database
+        debts = fetch_debts_from_database()
+    except SomeException:
+        # If fetching debts fails for some reason, set debts to an empty list
+        debts = []
+
+    # Check if the debts list is empty and display a message accordingly
+    if not debts:
+        message = "You have no debt"
+    else:
+        message = None  # or any logic you want when there are debts
+
+    return render_template('debts.html', debts=debts, message=message)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all() 
     app.run(debug=True)
