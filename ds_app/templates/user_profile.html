@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1>User Profile</h1>
+    
+    <div id="userInfo">
+        <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+        <p>Email: {{ user.email }}</p>
+        <!-- Display other user info here -->
+    </div>
+
+    <a href="{{ url_for('edit_profile') }}" class="btn btn-primary">Edit Profile</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+</div>
+
+{% endblock %}
