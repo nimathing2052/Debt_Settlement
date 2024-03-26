@@ -1,10 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import select, text
 from werkzeug.security import check_password_hash, generate_password_hash
-
 
 
 # APP INSTANCE
@@ -132,19 +130,6 @@ def settle_debts_view():
 
 @app.route('/debt_view')
 def show_debts():
-    try:
-        # This is where you would normally fetch your debts, e.g., from a database
-        debts = fetch_debts_from_database()
-    except SomeException:
-        # If fetching debts fails for some reason, set debts to an empty list
-        debts = []
-
-    # Check if the debts list is empty and display a message accordingly
-    if not debts:
-        message = "You have no debt"
-    else:
-        message = None  # or any logic you want when there are debts
-
     return render_template('debt_view.html', debts=debts, message=message)
 
 
