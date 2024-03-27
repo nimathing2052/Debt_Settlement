@@ -8,6 +8,34 @@
 
 {% block content %}
 <body>
+    <div class="container mt-5">
+        <h2>Your Debt Items</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Payer</th>
+                    <th>Debtors</th>
+                    <th>Monetary Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for debt in debt_items %}
+                <tr>
+                    <td>{{ debt.item_name }}</td>
+                    <td>{{ debt.payer.first_name }} {{ debt.payer.last_name }}</td>
+                    <td>
+                        {% if debt.debtor_1 %}{{ debt.debtor_1.first_name }} {{ debt.debtor_1.last_name }}{% endif %}
+                        {% if debt.debtor_2 %}, {{ debt.debtor_2.first_name }} {{ debt.debtor_2.last_name }}{% endif %}
+                        {% if debt.debtor_3 %}, {{ debt.debtor_3.first_name }} {{ debt.debtor_3.last_name }}{% endif %}
+                    </td>
+                    <td>${{ debt.monetary_value | round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
 
 </body>
 {% endblock %}

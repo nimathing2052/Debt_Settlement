@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "layout.html" %}
+<head>
+    <meta charset="UTF-8">
+    <title>Debt View</title>
+</head>
+
+{% block content %}
+<body>
+    <div class="container mt-5">
+        <h2>Debt Settlement</h2>
+        <form action="/settle_debts" method="post">
+            <button type="submit" class="btn btn-primary">Settle Debts</button>
+        </form>
+        {% if debt_info %}
+            <h3 class="mt-4">You owe:</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user, amount in debt_info.items() %}
+                    <tr>
+                        <td>{{ user }}</td>
+                        <td>${{ amount | round(2) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</body>
+{% endblock %}
+
+</html>
