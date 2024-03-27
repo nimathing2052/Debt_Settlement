@@ -24,35 +24,36 @@ db = SQLAlchemy(app)
 # Ensure the app is aware of the database commands
 app.app_context().push()
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(20), unique=True, nullable=False) 
+    email = db.Column(db.String(20), unique=True, nullable=False)
     first_name = db.Column(db.String(20), nullable=False)
     last_name = db.Column(db.String(20), nullable=False)
-    password_hash = db.Column(db.String(60), nullable=False) 
-    debts = db.relationship('DebtItem', backref='user', lazy=True)
+    password_hash = db.Column(db.String(60), nullable=False)
 
     def __repr__(self):
         return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
 
-# Define the DebtItem model
 class DebtItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(50), nullable=False)
-    payer = db.Column(db.String(50), nullable=False)
-    debtor_1 = db.Column(db.String(50), nullable=False)
-    debtor_2 = db.Column(db.String(50), nullable=True)
-    debtor_3 = db.Column(db.String(50), nullable=True)
+    payer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    debtor_1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    debtor_2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    debtor_3_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     monetary_value = db.Column(db.Float, nullable=False)
     group_id = db.Column(db.String(50), nullable=False)
-    time_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
+    time_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    # define relationships
+    payer = db.relationship('User', foreign_keys=[payer_id], backref=db.backref('paid_debts', lazy=True))
+    debtor_1 = db.relationship('User', foreign_keys=[debtor_1_id], backref=db.backref('debts_1', lazy=True))
+    debtor_2 = db.relationship('User', foreign_keys=[debtor_2_id], backref=db.backref('debts_2', lazy=True))
+    debtor_3 = db.relationship('User', foreign_keys=[debtor_3_id], backref=db.backref('debts_3', lazy=True))
 
     def __repr__(self):
         return f"DebtItem('{self.item_name}', '{self.monetary_value}')"
-
-if __name__ == "__main__":
-    db.create_all() 
 
 # PAGES ----------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
@@ -120,15 +121,6 @@ def user_profile(title='Profile page'):
     return render_template('user_profile.html',
                            title=title)
 
-@app.route('/settle_debts')
-def settle_debts_view():
-    if 'user_id' in session:
-        # This is a placeholder for the settlement algorithm
-        transactions = []  # Simulate transactions
-        return render_template('result.html', transactions=transactions)
-    else:
-        return render_template('index.html')
-
 
 @app.route('/debt_view')
 def show_debts():
@@ -146,6 +138,37 @@ def show_debts():
         message = None  # or any logic you want when there are debts
 
     return render_template('debt_view.html', debts=debts, message=message)
+
+
+@app.route('/settle_debts')
+def settle_debts_view():
+    if 'user_id' in session:
+        # This is a placeholder for the settlement algorithm
+        transactions = []  # Simulate transactions
+        return render_template('result.html', transactions=transactions)
+    else:
+        return render_template('index.html')
+
+
+def calculate_debts(user_id):
+    all_debts = DebtItem.query.all()
+    owe_amounts = {}  # dic to hold how much each user owes to othes
+
+    for debt in all_debts:
+        debtors = [debt.debtor_1, debt.debtor_2, debt.debtor_3]  
+        split_value = debt.monetary_value / len([debtor for debtor in debtors if debtor])  # assumes equal split - need to make this variable later
+
+        for debtor in debtors:
+            if debtor:  # check  debtor exists (as debtor_2 and debtor_3 might not exist) - later need to make these linked to user ids in the database
+                if debtor not in owe_amounts:
+                    owe_amounts[debtor] = {}
+                # later need to make debtors linked to unique ids
+                if debt.payer not in owe_amounts[debtor]:
+                    owe_amounts[debtor][debt.payer] = 0
+                owe_amounts[debtor][debt.payer] += split_value
+
+    # Return the total amount the current user owes to each other user
+    return owe_amounts.get(user_id, {})
 
 
 if __name__ == "__main__":
