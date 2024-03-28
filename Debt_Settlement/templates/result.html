@@ -1,33 +1,18 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+
+{% block content %}
+
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Settlement Results</title>
-    <style>
-        body { font-family: sans-serif; }
-        table { border-collapse: collapse; margin-top: 20px; }
-        td, th { border: 1px solid #ddd; padding: 8px; }
-    </style>
 </head>
 <body>
     <h1>Debt Settlement Results</h1>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Debtor</th>
-                <th>Creditor</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-            <tr>
-                <td>{{ transaction[0] }}</td>
-                <td>{{ transaction[1] }}</td>
-                <td>{{ transaction[2] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <ul>
+        {% for payer_id, receiver_id, amount in transactions %}
+        <li>Payer ID: {{ payer_id }}, Receiver ID: {{ receiver_id }}, Amount: {{ amount }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

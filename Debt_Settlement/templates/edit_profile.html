@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+</head>
+<body>
+    <h1>Edit Profile</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.user_name.label }}: {{ form.user_name(size=32) }}
+            {% if form.user_name.errors %}
+                <ul>
+                    {% for error in form.user_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <!-- Include additional fields as needed -->
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+</body>
+</html>
+
