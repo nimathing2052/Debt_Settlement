@@ -85,6 +85,19 @@ def user_profile(title='Profile page'):
 
 @app.route('/debt_view')
 def show_debts():
+    try:
+        # This is where you would normally fetch your debts, e.g., from a database
+        debts = fetch_debts_from_database()
+    except SomeException:
+        # If fetching debts fails for some reason, set debts to an empty list
+        debts = []
+
+    # Check if the debts list is empty and display a message accordingly
+    if not debts:
+        message = "You have no debt"
+    else:
+        message = None  # or any logic you want when there are debts
+
     return render_template('debt_view.html', debts=debts, message=message)
 
 
