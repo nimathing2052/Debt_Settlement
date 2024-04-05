@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from sqlalchemy import select, text
+from models.models import db, User, DebtItem
+from config import Config
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -10,50 +8,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # APP INSTANCE
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config.from_object(Config)
 
-# DATABASE--------------------------------------------------------------------------------------------------------------
-# Configuring the SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db.init_app(app)
 
-# USER DATABSE
-# SQLAlchemy database instance
-db = SQLAlchemy(app)
-
-
-# Ensure the app is aware of the database commands
-app.app_context().push()
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(20), unique=True, nullable=False)
-    first_name = db.Column(db.String(20), nullable=False)
-    last_name = db.Column(db.String(20), nullable=False)
-    password_hash = db.Column(db.String(60), nullable=False)
-
-    def __repr__(self):
-        return f"User('{self.email}', '{self.first_name}', '{self.last_name}')"
-
-class DebtItem(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    item_name = db.Column(db.String(50), nullable=False)
-    payer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    debtor_1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    debtor_2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    debtor_3_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    monetary_value = db.Column(db.Float, nullable=False)
-    group_id = db.Column(db.String(50), nullable=False)
-    time_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-
-    # define relationships
-    payer = db.relationship('User', foreign_keys=[payer_id], backref=db.backref('paid_debts', lazy=True))
-    debtor_1 = db.relationship('User', foreign_keys=[debtor_1_id], backref=db.backref('debts_1', lazy=True))
-    debtor_2 = db.relationship('User', foreign_keys=[debtor_2_id], backref=db.backref('debts_2', lazy=True))
-    debtor_3 = db.relationship('User', foreign_keys=[debtor_3_id], backref=db.backref('debts_3', lazy=True))
-
-    def __repr__(self):
-        return f"DebtItem('{self.item_name}', '{self.monetary_value}')"
+@app.before_request
+def create_tables():
+    db.create_all()
 
 # PAGES ----------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
@@ -124,19 +85,6 @@ def user_profile(title='Profile page'):
 
 @app.route('/debt_view')
 def show_debts():
-    try:
-        # This is where you would normally fetch your debts, e.g., from a database
-        debts = fetch_debts_from_database()
-    except SomeException:
-        # If fetching debts fails for some reason, set debts to an empty list
-        debts = []
-
-    # Check if the debts list is empty and display a message accordingly
-    if not debts:
-        message = "You have no debt"
-    else:
-        message = None  # or any logic you want when there are debts
-
     return render_template('debt_view.html', debts=debts, message=message)
 
 
