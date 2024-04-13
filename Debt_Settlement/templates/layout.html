@@ -21,6 +21,30 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('user_profile') }}">Profile</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Finances
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ url_for('input_debts') }}">Debtors</a>
+                            <a class="dropdown-item" href="url_for('manage_debts') }}">Debts</a>
+                            <a class="dropdown-item" href="{{ url_for('show_monetary_values') }}">Balance</a>
+                            <a class="dropdown-item" href="{{ url_for('input_monetary_value') }}">Deposit</a>
+                            <!-- Add more options as needed -->
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Transaction
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ url_for('send_money') }}">Individual</a>
+                            <a class="dropdown-item" href="#">Group</a>
+                            <a class="dropdown-item" href="#">Option 3</a>
+                            <!-- Add more options as needed -->
+                        </div>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                     </li>

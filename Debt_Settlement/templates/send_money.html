@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <title>Settle Debt</title>
+</head>
+<body>
+    <h1>Settle Debt</h1>
+    <p>Your current balance: {{ sender_monetary_value }}</p>
+    <form method="post">
+        <label for="recipient">Select recipient:</label>
+        <select id="recipient" name="recipient">
+            {% for user in users %}
+                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label for="amount">Enter amount:</label>
+        <input type="number" id="amount" name="amount" step="0.01" min="0.01" required><br><br>
+        <input type="submit" value="Send">
+    </form>
+</body>
+{% endblock %}
