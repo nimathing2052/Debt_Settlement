@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Debts</title>
+</head>
+<body>
+    <h1>Input Debts</h1>
+    <form method="POST" action="/input_debts">
+        <label for="debtor">Select debtor:</label>
+        <select id="debtor" name="debtor">
+            {% for user in users %}
+            <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="amount">Enter amount owed:</label>
+        <input type="number" id="amount" name="amount" step="0.01" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+{% endblock %}

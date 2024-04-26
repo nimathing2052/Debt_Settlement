@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monetary Values</title>
+</head>
+<body>
+    <h1>Monetary Values</h1>
+    <ul>
+        {% for monetary_value in monetary_values %}
+            <li>{{ monetary_value }}</li>
+        {% endfor %}
+    </ul>
+    <p>Total Monetary Value: {{ total_monetary_value }}</p>
+</body>
+{% endblock %}
