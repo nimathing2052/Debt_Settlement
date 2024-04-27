@@ -163,33 +163,20 @@ def init_debt_routes(app):
         if request.method == 'POST':
             # Retrieve the logged-in user's ID
             user_id = session.get('user_id')
+            user = User.query.get(user_id)
 
             # Retrieve the selected debtor's ID and debt amount from the form
             debtor_id = int(request.form['debtor'])
             amount = float(request.form['amount'])
 
-            # Retrieve the debtor's information
-            debtor = User.query.get(debtor_id)
-
-            # Save the debt under the user's debts column
-            user = User.query.get(user_id)
-            user.debts += amount
-
-            # Save the debt information in the DebtItem table
-            debt_item = DebtItem(item_name="Debt", monetary_value=-amount, user_id=user_id)
-            debt_item.debtor_1 = debtor.first_name + " " + debtor.last_name
+            # Create a new debt item and add it to the database
+            debt_item = DebtItem(item_name="Debt", monetary_value=amount, user_id=debtor_id,
+                                 payer=user.first_name + " " + user.last_name)
             db.session.add(debt_item)
             db.session.commit()
 
-            # Retrieve all users who have the current user's name in their list of debts
-            users_who_owe = User.query.filter(User.debts > 0).all()
-
-            # Print the names of users who owe the current user along with their debt amounts
-            for user_who_owes in users_who_owe:
-                print(user_who_owes.first_name, user_who_owes.last_name, "owes you", user_who_owes.debts)
-
-            # Calculate the total amount owed to the current user
-            total_debts = sum(user_who_owes.debts for user_who_owes in users_who_owe)
+            # Calculate the total amount owed to the current user by summing all associated DebtItems
+            total_debts = sum(item.monetary_value for item in user.debts if item.monetary_value > 0)
             print("Total amount owed to you:", total_debts)
 
             # Redirect or render a template as needed
