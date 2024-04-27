@@ -1,53 +1,18 @@
-<!DOCTYPE html>
-<html>
 {% extends "layout.html" %}
 
 {% block content %}
-<head>
-    <title>Friendly Debt Settlement</title>
-    <style>
-        body { font-family: sans-serif; }
-        .debt-entry { margin-bottom: 15px; }
-    </style>
-</head>
-<body>
-    <h1>Friendly Debt Settlement</h1>
+<div class="container">
+    <h1>Welcome to Friendly Debt Settlement</h1>
+    <p>Welcome, {{ user_name }}! Ready to manage your debts?</p>
 
     <form method="POST">
-        <div id="debt-entries">
-            <div class="debt-entry">
-                <label for="debtor0">Debtor:</label>
-                <input type="text" id="debtor0" name="debtor0" required>
-                <label for="creditor0">Creditor:</label>
-                <input type="text" id="creditor0" name="creditor0" required>
-                <label for="amount0">Amount:</label>
-                <input type="number" id="amount0" name="amount0" required step="0.01"><br>
-            </div>
-        </div>
-        <button type="button" onclick="addDebtField()">Add Another Debt</button>
-        <button type="submit">Calculate</button>
+        <label for="item_name">Item Name:</label>
+        <input type="text" id="item_name" name="item_name" required>
+
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required step="0.01">
+
+        <button type="submit" class="btn btn-primary">Add Debt</button>
     </form>
-
-    <script>
-        let count = 1;
-        function addDebtField() {
-            const container = document.getElementById('debt-entries');
-            const newEntry = document.createElement('div');
-            newEntry.classList.add('debt-entry');
-
-            newEntry.innerHTML = `
-                <label for="debtor${count}">Debtor:</label>
-                <input type="text" id="debtor${count}" name="debtor${count}" required>
-                <label for="creditor${count}">Creditor:</label>
-                <input type="text" id="creditor${count}" name="creditor${count}" required>
-                <label for="amount${count}">Amount:</label>
-                <input type="number" id="amount${count}" name="amount${count}" required step="0.01"><br>
-            `;
-
-            container.appendChild(newEntry);
-            count++;
-        }
-    </script>
-</body>
+</div>
 {% endblock %}
-</html>

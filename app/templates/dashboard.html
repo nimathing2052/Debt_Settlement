@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'layout.html' %}
+{% block content %}
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <title>Dashboard</title>
 </head>
 <body>
-$END$
+    <h1>Financial Dashboard</h1>
+    <h2>Debts</h2>
+    <ul>
+        {% for debtor in debts %}
+            <li>{{ debtor.first_name }} {{ debtor.last_name }} owes a total of €{{ debtor.total_debt }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Credits</h2>
+    <ul>
+        {% for creditor in credits %}
+            <li>{{ creditor.first_name }} {{ creditor.last_name }} is owed a total of €{{ creditor.total_credit }}</li>
+        {% endfor %}
+    </ul>
 </body>
-</html>
+{% endblock %}

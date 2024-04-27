@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Payment Instructions</h2>
+    {% if payments %}
+        <ul>
+            {% for payment in payments %}
+                <li>{{ payment }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No payments are necessary or an error occurred.</p>
+    {% endif %}
+</div>
+{% endblock %}

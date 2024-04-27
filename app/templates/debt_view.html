@@ -1,15 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-{% extends "layout.html" %}
-<head>
-    <meta charset="UTF-8">
-    <title>Debt View</title>
-</head>
-
+{% extends 'layout.html' %}
 {% block content %}
+<head>
+    <title>View Debts</title>
+</head>
 <body>
-
+    <h1>View Debts</h1>
+    <ul>
+        {% for transaction in transactions %}
+            <li>{{ transaction.debtor.first_name }} owes {{ -transaction.amount }} (recorded at {{ transaction.time_date }})</li>
+        {% endfor %}
+    </ul>
 </body>
 {% endblock %}
-
-</html>
