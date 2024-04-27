@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <h1>Welcome to Friendly Debt Settlement</h1>
-    <p>Welcome, {{ user_name }}! Ready to manage your debts?</p>
+    <p>Welcome, {{ session.first_name }}! Ready to manage your debts?</p>
 
     <form method="POST">
         <label for="item_name">Item Name:</label>
