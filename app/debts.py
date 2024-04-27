@@ -1,5 +1,8 @@
 from flask import render_template, session, request
-from app.models import DebtItem, User, db
+from app.models import Transaction, User, db # remove transaction when finalising here
+from .debt_resolver import Solution, read_db_to_adjacency_matrix
+
+# NB: CHANGED ALL 'UserItem' model references to new model 'Transaction'
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -7,7 +10,7 @@ def init_debt_routes(app):
         return render_template('user_profile.html',
                                title=title)
 
-    @app.route('/settle_debts')
+    @app.route('/settle_debts') # I WROTE THE FUNCTIONS FOR THIS BELOW, THIS CAN BE REMOVED - CHECK
     def settle_debts_view():
         if 'user_id' in session:
             # This is a placeholder for the settlement algorithm
@@ -42,14 +45,14 @@ def init_debt_routes(app):
             item_id = request.form.get('user_id')
             amount = float(request.form.get('amount'))
 
-            debt_item = DebtItem.query.get_or_404(item_id)
+            debt_item = Transaction.query.get_or_404(item_id)
             debt_item.monetary_value += amount
             db.session.commit()
             print("successful")
             return redirect(url_for('home'))
 
         # If it's a GET request, render the form
-        items = DebtItem.query.all()
+        items = Transaction.query.all()
         return render_template('update_money.html', items=items)
 
     # Route to handle input of monetary value and item name
@@ -66,8 +69,8 @@ def init_debt_routes(app):
                 # Set the payer to the logged-in user's email
                 payer = user.email
 
-                # Create the DebtItem object with all required fields
-                debt_item = DebtItem(item_name=item_name, payer=payer, monetary_value=monetary_value, user=user)
+                # Create the Transaction object with all required fields
+                debt_item = Transaction(item_name=item_name, payer=payer, monetary_value=monetary_value, user=user)
                 db.session.add(debt_item)
                 db.session.commit()
                 return 'Monetary value updated successfully'
@@ -82,8 +85,8 @@ def init_debt_routes(app):
         # Retrieve the user's ID from the session
         user_id = session.get('user_id')
         if user_id:
-            # Query the DebtItem table to retrieve monetary values associated with the user ID
-            monetary_values = DebtItem.query.filter_by(user_id=user_id).with_entities(DebtItem.monetary_value).all()
+            # Query the Transaction table to retrieve monetary values associated with the user ID
+            monetary_values = Transaction.query.filter_by(user_id=user_id).with_entities(Transaction.monetary_value).all()
 
             # Calculate the total monetary value
             total_monetary_value = sum(value[0] for value in monetary_values)
@@ -93,20 +96,21 @@ def init_debt_routes(app):
         else:
             return 'User not logged in'
 
+
     # Route to display the list of users and send money
     @app.route('/send_money', methods=['GET', 'POST'])
     def send_money():
         # Retrieve logged-in user's monetary value
         user_id = session.get('user_id')
-        sender = DebtItem.query.get(user_id)
-        monetary_values = DebtItem.query.filter_by(user_id=user_id).with_entities(DebtItem.monetary_value).all()
-        # sender_monetary_value = db.session.query(func.sum(DebtItem.monetary_value)).filter_by(id=user_id).scalar() or 0.0
+        sender = Transaction.query.get(user_id)
+        monetary_values = Transaction.query.filter_by(user_id=user_id).with_entities(Transaction.monetary_value).all()
+        # sender_monetary_value = db.session.query(func.sum(Transaction.monetary_value)).filter_by(id=user_id).scalar() or 0.0
         sender_monetary_value = sum(value[0] for value in monetary_values)
 
         if request.method == 'POST':
             # Retrieve recipient's information
             recipient_id = int(request.form['recipient'])
-            recipient = DebtItem.query.get(recipient_id)
+            recipient = Transaction.query.get(recipient_id)
 
             # Retrieve amount to send
             amount = float(request.form['amount'])
@@ -121,8 +125,8 @@ def init_debt_routes(app):
                 # payer = user.email
                 payer = user1.email
 
-                # Create the DebtItem object with all required fields
-                debt_item = DebtItem(item_name="Payment", payer=payer, monetary_value=-amount, user=user1)
+                # Create the Transaction object with all required fields
+                debt_item = Transaction(item_name="Payment", payer=payer, monetary_value=-amount, user=user1)
                 db.session.add(debt_item)
                 db.session.commit()
             # Update sender's monetary value
@@ -134,8 +138,8 @@ def init_debt_routes(app):
                 # payer = user.email
                 payer = user2.email
 
-                # Create the DebtItem object with all required fields
-                debt_item = DebtItem(item_name="Payment", payer=payer, monetary_value=amount, user=user2)
+                # Create the Transaction object with all required fields
+                debt_item = Transaction(item_name="Payment", payer=payer, monetary_value=amount, user=user2)
                 db.session.add(debt_item)
                 db.session.commit()
 
@@ -148,7 +152,7 @@ def init_debt_routes(app):
             # Update sender's monetary value in the database after successful transfer
             # sender = User.query.get(user_id)  # Retrieve sender object again
             sender.monetary_value -= amount  # Subtract the transferred amount
-            db.session.add(DebtItem(id=user_id, monetary_value=int(-amount)))
+            db.session.add(Transaction(id=user_id, monetary_value=int(-amount)))
             # db.session.commit()  # Commit the update to the database
 
             return 'Transfer successful'
@@ -175,8 +179,8 @@ def init_debt_routes(app):
             user = User.query.get(user_id)
             user.debts += amount
 
-            # Save the debt information in the DebtItem table
-            debt_item = DebtItem(item_name="Debt", monetary_value=-amount, user_id=user_id)
+            # Save the debt information in the Transaction table
+            debt_item = Transaction(item_name="Debt", monetary_value=-amount, user_id=user_id)
             debt_item.debtor_1 = debtor.first_name + " " + debtor.last_name
             db.session.add(debt_item)
             db.session.commit()
@@ -200,3 +204,16 @@ def init_debt_routes(app):
         return render_template('input_debts.html', users=users)
 
 
+    @app.route('/settle_up', methods=['GET', 'POST'])
+    def settle_up():
+        if request.method == 'POST':
+            adjacency_matrix, persons = read_db_to_adjacency_matrix()
+            solver = Solution()
+            payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
+            return render_template('result2.html', payments=payment_instructions)
+        return render_template('settle_up.html')
+
+
+    @app.route('/settle_up_form')
+    def settle_up_form():
+        return render_template('settle_up.html')
