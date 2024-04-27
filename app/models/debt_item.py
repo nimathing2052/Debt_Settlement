@@ -2,6 +2,8 @@ import datetime
 
 from . import db
 
+
+# This is deprecated, delete later
 class DebtItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(50), nullable=False)
