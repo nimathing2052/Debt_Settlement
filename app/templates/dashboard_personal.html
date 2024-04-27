@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<html>
+<head>
+    <title>Your Personal Dashboard</title>
+</head>
+<body>
+    <h1>Your Financial Overview</h1>
+    <div>
+        <h2>Your Personal Net Debts Overview</h2>
+        <ul>
+            <li>Total Incoming: €{{ monetary_values.total_credit }}</li>
+            <li>Total Expenses: €{{ monetary_values.total_debit }}</li>
+            <li>Net Balance Owed: €{{ monetary_values.net_balance }}</li>
+        </ul>
+    </div>
+
+    <div class="container mt-3">
+        <h1>Your Very Own Detailed Transaction History</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Payer</th>
+                    <th>Debtor</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in monetary_values.credits %}
+                <tr>
+                    <td>{{ transaction.item_name }}</td>
+                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+                    <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
+                    <td>€{{ '%0.2f' | format(transaction.amount) }}</td>
+                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+                {% for transaction in monetary_values.debts %}
+                <tr>
+                    <td>{{ transaction.item_name }}</td>
+                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+                    <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
+                    <td>€{{ '%0.2f' | format(transaction.amount) }}</td>
+                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
+{% endblock %}

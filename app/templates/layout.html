@@ -26,7 +26,12 @@
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
                     {% if 'user_id' in session %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-toggle="dropdown">Dashboards</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ url_for('dashboard') }}">Overall Dashboard</a>
+                            <a class="dropdown-item" href="{{ url_for('dashboard_personal') }}">Personal Dashboard</a>
+                        </div>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFinance" role="button" data-toggle="dropdown">Finances</a>
                         <div class="dropdown-menu">
@@ -36,6 +41,8 @@
                             <a class="dropdown-item" href="{{ url_for('settle_up') }}">Settle Up!</a>
                         </div>
                     </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('input_debts') }}">Add Debt</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settle_up') }}">Settle Up!</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Logout</a></li>
                     {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>

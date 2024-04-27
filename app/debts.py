@@ -46,6 +46,7 @@ def init_debt_routes(app):
             .all()
 
         return render_template('dashboard.html', debts=debts, credits=credits)
+    
     @app.route('/debt_view')
     def show_debts():
         if 'user_id' not in session:
@@ -168,7 +169,12 @@ def init_debt_routes(app):
             debtor = User.query.get_or_404(debtor_id)
 
             try:
-                debt_item = Transaction(item_name="Debt", amount=-amount, payer_id=payer.id, debtor_id=debtor.id)
+                debt_item = Transaction(
+                    item_name="Debt", 
+                    amount=-amount, 
+                    payer_id=payer.id, 
+                    debtor_id=debtor.id)
+                
                 db.session.add(debt_item)
                 db.session.commit()
                 flash('Debt recorded successfully.', 'success')
@@ -237,4 +243,40 @@ def init_debt_routes(app):
         total_credit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.debtor_id == user_id).scalar() or 0
         total_debit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.payer_id == user_id).scalar() or 0
         return (total_credit + total_debit) >= amount
+    
+
+    @app.route('/dashboard_personal')
+    def dashboard_personal():
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Please log in', 'warning')
+            return redirect(url_for('login'))
+
+        try:
+            # Fetch credit and debit transactions
+            credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
+            debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
+
+            # Sum up credits and debits
+            total_credit = sum(transaction.amount for transaction in credit_transactions)
+            total_debit = sum(transaction.amount for transaction in debit_transactions)
+
+            # Calculate net balance
+            net_balance = total_credit - total_debit
+
+            # Prepare data for template
+            monetary_values = {
+                'credits': credit_transactions,
+                'debts': debit_transactions,
+                'total_credit': total_credit,
+                'total_debit': total_debit,
+                'net_balance': net_balance
+            }
+
+            return render_template('dashboard_personal.html', monetary_values=monetary_values)
+        
+        except Exception as e:
+            flash('An error occurred while fetching monetary values.', 'danger')
+            return redirect(url_for('home'))
+
 

@@ -17,5 +17,9 @@
             <li>{{ creditor.first_name }} {{ creditor.last_name }} is owed a total of €{{ creditor.total_credit }}</li>
         {% endfor %}
     </ul>
+
+    Top section: how much each user owes (just a single entry, either positive or negative, so we'll need the algorithm to have settled up here first) 
+    <br>
+    Bottom section: a table of every single transaction on the app (see "Personal Dashboard")
 </body>
 {% endblock %}
