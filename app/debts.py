@@ -301,9 +301,12 @@ def init_debt_routes(app):
                 'net_balance': net_balance
             }
 
-            return render_template('dashboard_personal.html', monetary_values=monetary_values)
-        
+            # Combine credit and debit transactions for the transaction history table
+            transactions = credit_transactions + debit_transactions
+            transactions.sort(key=lambda x: x.time_date, reverse=True)
+
+            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions)
         except Exception as e:
-            flash('An error occurred while fetching monetary values.', 'danger')
-            return redirect(url_for('home'))
+            flash('Error retrieving your data', 'error')
+            return redirect(url_for('login'))
 

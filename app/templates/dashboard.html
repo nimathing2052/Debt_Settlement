@@ -48,6 +48,8 @@
     <br>
     re: below table: there's an issue with how item displays - normally it seems to be debt, even if in the input I called it something specific (issue with either the input function or the table function)
     <br>
+    re: below table: i think now I've changed the debt input, all of the amounts are recorded as negative, so we need to remove the negative stringformat
+    <br>
 
     <h2 class="mb-4">A Short History of All Transactions on the App!</h2>
     <table id="transactionsTable" class="table table-striped">
@@ -75,4 +77,30 @@
 </div>
 
 </body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var table = $('#transactionsTable').DataTable({
+            "order": [[4, "desc"]], // Default ordering by date, descending
+            "initComplete": function () {
+                this.api().columns().every(function () {
+                    var column = this;
+                    var input = $('<input type="text" placeholder="Search '+column.header().textContent+'" />')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                            column.search(val ? val : '', true, false).draw();
+                        });
+
+                    input.on('click', function(e) {
+                        e.stopPropagation();
+                    });
+                });
+            }
+        });
+    });
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
+</html>
 {% endblock %}

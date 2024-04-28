@@ -14,45 +14,31 @@
             <li>Total Expenses Owed: €{{ monetary_values.total_debit }}</li>
             <li>Net Balance Owed: €{{ monetary_values.net_balance }}</li>
         </ul>
-        re: settle up option here: <br>
-        - change so that it returns who you owe and how much (currently it does all users, make it just so that it's specific to the logged in user) <br>
-        - change so that it keeps you on the same page (currently it takes you to the settle up page)
         <div class="container mt-3">
             <form action="{{ url_for('settle_up') }}" method="post">
                 <button type="submit" class="btn btn-success">Settle Up Your Debts!</button>
             </form>
         </div>
-    </div>
-
-    <div class="container mt-3">
-        <h1>Your Very Own Detailed Transaction History!</h1>
-        <table>
-            <thead>
+        <br>
+        <h2 class="mb-4">A Short History of Your Transactions</h2>
+        <table id="transactionsTable" class="table table-striped">
+            <thead class="thead-dark">
                 <tr>
+                    <th>Payer Name</th>
+                    <th>Payee Name</th>
                     <th>Item Name</th>
-                    <th>Payer</th>
-                    <th>Debtor</th>
-                    <th>Amount</th>
+                    <th>Amount (€)</th>
                     <th>Date</th>
                 </tr>
             </thead>
             <tbody>
-                {% for transaction in monetary_values.credits %}
+                {% for transaction in transactions %}
                 <tr>
-                    <td>{{ transaction.item_name }}</td>
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
                     <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
-                    <td>€{{ '%0.2f' | format(transaction.amount) }}</td>
-                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                </tr>
-                {% endfor %}
-                {% for transaction in monetary_values.debts %}
-                <tr>
                     <td>{{ transaction.item_name }}</td>
-                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
-                    <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
-                    <td>€{{ '%0.2f' | format(transaction.amount) }}</td>
-                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">€{{ transaction.amount | round(2) }}</td>
+                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -60,5 +46,32 @@
     </div>
 
 </body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var table = $('#transactionsTable').DataTable({
+            "order": [[4, "desc"]], // Default ordering by date, descending
+            "initComplete": function () {
+                this.api().columns().every(function () {
+                    var column = this;
+                    var input = $('<input type="text" placeholder="Search '+column.header().textContent+'" />')
+                        .appendTo($(column.footer()).empty())
+                        .on('change', function () {
+                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                            column.search(val ? val : '', true, false).draw();
+                        });
+
+                    input.on('click', function(e) {
+                        e.stopPropagation();
+                    });
+                });
+            }
+        });
+    });
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
+    
 </html>
 {% endblock %}
