@@ -57,10 +57,11 @@ def init_debt_routes(app):
         .all()
 
         # Define aliases for User model
-        Payer = aliased(User)
-        Debtor = aliased(User)
+        Payer = aliased(User, name='payer')
+        Debtor = aliased(User, name='debtor')
 
-        # Fetch all transactions with payer and debtor details
+
+        # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
         transactions = db.session.query(
             Transaction.item_name,
             Payer.first_name.label('payer_first_name'),
@@ -70,7 +71,7 @@ def init_debt_routes(app):
             Transaction.amount,
             Transaction.time_date
         ).join(Payer, Payer.id == Transaction.payer_id) \
-        .join(Debtor, Debtor.id == Transaction.debtor_id).all()
+        .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
 
         return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
     
@@ -251,7 +252,7 @@ def init_debt_routes(app):
 
             try:
                 transaction = Transaction(
-                    item_name="Transfer",
+                    item_name1="Transfer",
                     amount=-amount,  # Negative because it's a debit from the payer
                     payer_id=user_id,
                     debtor_id=recipient_id,
@@ -306,7 +307,7 @@ def init_debt_routes(app):
             transactions.sort(key=lambda x: x.time_date, reverse=True)
 
             return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions)
+
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
-

@@ -44,11 +44,19 @@
 
     re: above settle up button: change it so that it doesn't redirect to a new web page, but stays here.
     <br>
+    <br>
     re: below table: make it 1. default ordering latest items first (I tried but couldn't get it to work); 2. searchable + orderable by a. payer, b. payee, c.time
     <br>
-    re: below table: there's an issue with how item displays - normally it seems to be debt, even if in the input I called it something specific (issue with either the input function or the table function)
     <br>
-    re: below table: i think now I've changed the debt input, all of the amounts are recorded as negative, so we need to remove the negative stringformat
+    re: below table: there's an issue with how item displays - normally it seems to be debt, even if in the input I called it something specific 
+    <br>
+    <br>
+    this comes from the `@app.route('/dashboard') def dashboard():` routing. I commented where the error occurs... i tried to fix it but i can't get it to work
+    <br>
+    <br>
+    to add: after settle up is clicked, offer a work flow to partially / fully settle up, where you input how much you have have paid and to whom and that is recorded in the database (ie it fully / partially wiped out the debts)
+
+    <br>
     <br>
 
     <h2 class="mb-4">A Short History of All Transactions on the App!</h2>
@@ -68,7 +76,7 @@
                 <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
                 <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
                 <td>{{ transaction.item_name }}</td>
-                <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount | round(2) }}</td>
+                <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount |  abs | round(2) }}</td>
                 <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
             </tr>
             {% endfor %}
@@ -77,6 +85,7 @@
 </div>
 
 </body>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
 <script>
@@ -102,5 +111,7 @@
     });
 </script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
+
 </html>
+
 {% endblock %}
