@@ -1,10 +1,11 @@
 from flask import Flask, request, session, flash, redirect, url_for, render_template
-from app.models import Transaction, User, db, Transaction
+from app.models import Transaction, User, db
 from .debt_resolver import Solution, read_db_to_adjacency_matrix
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
 from datetime import datetime
 from .forms import SendMoneyForm
+
 def init_debt_routes(app):
     @app.route("/user_profile")
     def user_profile(title='Profile page'):
@@ -29,23 +30,29 @@ def init_debt_routes(app):
         if 'user_id' not in session:
             flash('Please log in to view the dashboard.', 'warning')
             return redirect(url_for('login'))
-
-        # Aggregate the debts and credits
-        debts = db.session.query(
-            User.first_name, User.last_name,
-            func.sum(Transaction.amount).label('total_debt')
-        ).join(User, User.id == Transaction.debtor_id) \
-            .group_by(User.first_name, User.last_name) \
-            .all()
-
-        credits = db.session.query(
-            User.first_name, User.last_name,
+        
+        # Subquery for total credits per user
+        credit_subquery = db.session.query(
+            Transaction.payer_id.label('user_id'),
             func.sum(Transaction.amount).label('total_credit')
-        ).join(User, User.id == Transaction.payer_id) \
-            .group_by(User.first_name, User.last_name) \
-            .all()
+        ).group_by(Transaction.payer_id).subquery()
 
-        return render_template('dashboard.html', debts=debts, credits=credits)
+        # Subquery for total debts per user
+        debt_subquery = db.session.query(
+            Transaction.debtor_id.label('user_id'),
+            func.sum(Transaction.amount).label('total_debt')
+        ).group_by(Transaction.debtor_id).subquery()
+
+        # Main query to calculate net balances
+        net_balances = db.session.query(
+            User.first_name, User.last_name,
+            (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label('net_balance')
+        ).outerjoin(credit_subquery, User.id == credit_subquery.c.user_id) \
+        .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
+        .group_by(User.first_name, User.last_name) \
+        .all()
+
+        return render_template('dashboard.html', net_balances=net_balances)
     
     @app.route('/debt_view')
     def show_debts():
@@ -201,6 +208,7 @@ def init_debt_routes(app):
                 flash(str(e), 'danger')
 
         return render_template('settle_up.html')
+    
 
     @app.route('/send_money', methods=['GET', 'POST'])
     def send_money():
@@ -278,5 +286,4 @@ def init_debt_routes(app):
         except Exception as e:
             flash('An error occurred while fetching monetary values.', 'danger')
             return redirect(url_for('home'))
-
 
