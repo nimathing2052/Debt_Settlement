@@ -36,13 +36,13 @@ def init_debt_routes(app):
         # Subquery for total credits per user
         credit_subquery = db.session.query(
             Transaction.payer_id.label('user_id'),
-            func.sum(Transaction.amount).label('total_credit')
+            func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
         ).group_by(Transaction.payer_id).subquery()
 
         # Subquery for total debts per user
         debt_subquery = db.session.query(
             Transaction.debtor_id.label('user_id'),
-            func.sum(Transaction.amount).label('total_debt')
+            func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
         ).group_by(Transaction.debtor_id).subquery()
 
         # Main query to calculate net balances, total credits, and total debts

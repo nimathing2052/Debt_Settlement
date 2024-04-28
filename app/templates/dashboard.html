@@ -33,7 +33,6 @@
             </tbody>
         </table>
     </div>
-why are some incoming / outgoing values negative and some positive? they should all be positive? suggests something wrong with the logic? 
 
     <br>
     <div class="container mt-3">
@@ -44,9 +43,11 @@ why are some incoming / outgoing values negative and some positive? they should 
     <br>
 
     re: above settle up button: change it so that it doesn't redirect to a new web page, but stays here.
-    Bottom section: a table of every single transaction on the app (see "Personal Dashboard")
     <br>
-    re: below table: make it 1. searchable, 2. orderable by payer, payee, time
+    re: below table: make it 1. default ordering latest items first (I tried but couldn't get it to work); 2. searchable + orderable by a. payer, b. payee, c.time
+    <br>
+    re: below table: there's an issue with how item displays - normally it seems to be debt, even if in the input I called it something specific (issue with either the input function or the table function)
+    <br>
 
     <h2 class="mb-4">A Short History of All Transactions on the App!</h2>
     <table id="transactionsTable" class="table table-striped">
@@ -73,15 +74,5 @@ why are some incoming / outgoing values negative and some positive? they should 
     </table>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#transactionsTable').DataTable({
-            "order": [[4, "desc"]] // Default ordering by date, descending
-        });
-    });
-</script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 {% endblock %}
