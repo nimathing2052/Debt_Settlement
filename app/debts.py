@@ -5,6 +5,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
 from datetime import datetime
 from .forms import SendMoneyForm
+from sqlalchemy.orm import aliased
+
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -43,16 +45,34 @@ def init_debt_routes(app):
             func.sum(Transaction.amount).label('total_debt')
         ).group_by(Transaction.debtor_id).subquery()
 
-        # Main query to calculate net balances
+        # Main query to calculate net balances, total credits, and total debts
         net_balances = db.session.query(
             User.first_name, User.last_name,
+            func.coalesce(credit_subquery.c.total_credit, 0).label('total_incomings'),
+            func.coalesce(debt_subquery.c.total_debt, 0).label('total_outgoings'),
             (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label('net_balance')
         ).outerjoin(credit_subquery, User.id == credit_subquery.c.user_id) \
         .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
         .group_by(User.first_name, User.last_name) \
         .all()
 
-        return render_template('dashboard.html', net_balances=net_balances)
+        # Define aliases for User model
+        Payer = aliased(User)
+        Debtor = aliased(User)
+
+        # Fetch all transactions with payer and debtor details
+        transactions = db.session.query(
+            Transaction.item_name,
+            Payer.first_name.label('payer_first_name'),
+            Payer.last_name.label('payer_last_name'),
+            Debtor.first_name.label('debtor_first_name'),
+            Debtor.last_name.label('debtor_last_name'),
+            Transaction.amount,
+            Transaction.time_date
+        ).join(Payer, Payer.id == Transaction.payer_id) \
+        .join(Debtor, Debtor.id == Transaction.debtor_id).all()
+
+        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
     
     @app.route('/debt_view')
     def show_debts():
