@@ -26,6 +26,11 @@
         .navbar-dark {
         background-color: #3091f9 !important; /* navbar background */
         }
+        .border-left {
+            border-left: 1px solid #ffffff;
+            padding-left: 10px;
+            margin-left: 10px;
+        }
         button, input[type="submit"] { /* button settings */
             border-radius: 20px;
             padding: 6px 12px;
@@ -85,35 +90,35 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">HOME</a></li>
                     {% if 'user_id' in session %}
                     <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFinance" role="button" data-toggle="dropdown">FINANCES</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ url_for('input_debts') }}">New Entry</a>
+                            <a class="dropdown-item" href="{{ url_for('show_monetary_values') }}">Balance</a>
+                            <a class="dropdown-item" href="{{ url_for('input_monetary_value') }}">Deposit</a>
+                            <a class="dropdown-item" href="{{ url_for('settle_up') }}">Settle Up!</a>
+                        </div>
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-toggle="dropdown">DASHBOARDS</a>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="{{ url_for('dashboard') }}">Overall Dashboard</a>
                             <a class="dropdown-item" href="{{ url_for('dashboard_personal') }}">Personal Dashboard</a>
                         </div>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFinance" role="button" data-toggle="dropdown">FINANCES</a>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="{{ url_for('input_debts') }}">Debtors</a>
-                            <a class="dropdown-item" href="{{ url_for('show_monetary_values') }}">Balance</a>
-                            <a class="dropdown-item" href="{{ url_for('input_monetary_value') }}">Deposit</a>
-                            <a class="dropdown-item" href="{{ url_for('settle_up') }}">Settle Up!</a>
-                        </div>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('input_debts') }}">ADD DEBT</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settle_up') }}">SETTLE UP!</a></li>
                     {% endif %}
                 </ul>
 
                 
                 <!-- Right-aligned items -->
                 <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('input_debts') }}">NEW ENTRY</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settle_up') }}">SETTLE UP!</a></li>
                     {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
+                        <a class="nav-link border-left" href="{{ url_for('logout') }}">LOG OUT</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">LOG IN</a>
+                        <a class="nav-link border-left" href="{{ url_for('login') }}">LOG IN</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">REGISTER</a>
