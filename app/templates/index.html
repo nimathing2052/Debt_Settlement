@@ -4,29 +4,37 @@
 
 {% block content %}
 <head>
-    <title>Friendly Debt Settlement</title>
+    <title>Welcome</title>
     <style>
         body { font-family: sans-serif; }
         .debt-entry { margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <h1>Friendly Debt Settlement</h1>
-
+    <br>
+    <h4>Welcome to <b>ClearSkies</b>, your personal guide to settling debts!</h4>
+    <p>Enjoy a simplified experience of eliminating financial clouds and welcoming clear skies ahead.</p>
+    <br>
     <form method="POST">
         <div id="debt-entries">
             <div class="debt-entry">
                 <label for="debtor0">Debtor:</label>
                 <input type="text" id="debtor0" name="debtor0" required>
+            </div>
+            <div class="debt-entry">
                 <label for="creditor0">Creditor:</label>
                 <input type="text" id="creditor0" name="creditor0" required>
+            </div>
+            <div class="debt-entry">
                 <label for="amount0">Amount:</label>
-                <input type="number" id="amount0" name="amount0" required step="0.01"><br>
+                <input type="number" id="amount0" name="amount0" required step="0.01">
             </div>
         </div>
+        <br>
         <button type="button" onclick="addDebtField()">Add Another Debt</button>
         <button type="submit">Calculate</button>
     </form>
+    
 
     <script>
         let count = 1;
@@ -36,12 +44,22 @@
             newEntry.classList.add('debt-entry');
 
             newEntry.innerHTML = `
-                <label for="debtor${count}">Debtor:</label>
-                <input type="text" id="debtor${count}" name="debtor${count}" required>
-                <label for="creditor${count}">Creditor:</label>
-                <input type="text" id="creditor${count}" name="creditor${count}" required>
-                <label for="amount${count}">Amount:</label>
-                <input type="number" id="amount${count}" name="amount${count}" required step="0.01"><br>
+            <div id="debt-entries">
+                <br>
+                <br>
+                <div class="debt-entry">
+                    <label for="debtor0">Debtor:</label>
+                    <input type="text" id="debtor0" name="debtor0" required>
+                </div>
+                <div class="debt-entry">
+                    <label for="creditor0">Creditor:</label>
+                    <input type="text" id="creditor0" name="creditor0" required>
+                </div>
+                <div class="debt-entry">
+                    <label for="amount0">Amount:</label>
+                    <input type="number" id="amount0" name="amount0" required step="0.01">
+                </div>
+            </div>
             `;
 
             container.appendChild(newEntry);
@@ -49,5 +67,9 @@
         }
     </script>
 </body>
+
+<br>
+<img src="{{url_for('static', filename='clouds_2.png')}}" class="clouds" align="right" />
+
 {% endblock %}
 </html>

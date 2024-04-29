@@ -6,24 +6,79 @@
     <title>Flask App</title>
     <!-- Bootstrap CSS (Ensure the correct path to the Bootstrap CSS file) -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        /* Font and Color Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(197, 229, 255);
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #0b2337;
+        }
+        .navbar-dark .navbar-brand {
+            color: #ffffff !important; /* FlaskApp color */
+        }
+        .navbar-dark .navbar-nav .nav-link {
+            color: #0b2337 !important; /* navbar links */
+        }
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: #15466d !important; /* navbar links hover */
+        }
+        .navbar-dark {
+        background-color: #3091f9 !important; /* navbar background */
+        }
+        button, input[type="submit"] { /* button settings */
+            border-radius: 20px;
+            padding: 6px 12px;
+            border: none;
+            background-color: #3091f9;
+            color: #fff;
+            cursor: pointer;
+        }
+        input[type="text"], input[type="number"] { /* text box settings */
+            border-radius: 10px;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+        }
+        .debt-entry label {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .debt-entry input[type="text"],
+        .debt-entry input[type="number"] { /* align text boxes */
+            display: inline-block;
+            width: 200px;
+            margin-right: 20px;
+        }
+        .navbar-nav .nav-link {
+            margin-right: 12px; /* margins added to navbar items */
+        }
+        .clouds {
+            position: absolute; /* cloud image settings*/
+            bottom: 0;
+            right: 0;
+            width: 600px;
+            height: auto;
+            z-index: -1;
+        }
+    </style>
 </head>
 <body>
     <header>
         <!-- Navigation Bar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <a class="navbar-brand" href="{{ url_for('home') }}">FlaskApp</a>
+            <a class="navbar-brand" href="{{ url_for('home') }}">ClearSkies</a>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">Home</a>
-                    </li>
-                    {% if 'user_id' in session %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('user_profile') }}">Profile</a>
+                        <a class="nav-link" href="{{ url_for('home') }}">HOME</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Finances
+                            FINANCES
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <a class="dropdown-item" href="{{ url_for('input_debts') }}">Debtors</a>
@@ -36,7 +91,7 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Transaction
+                            TRANSACTION
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <a class="dropdown-item" href="{{ url_for('send_money') }}">Individual</a>
@@ -45,16 +100,24 @@
                             <!-- Add more options as needed -->
                         </div>
                     </li>
+                </ul>
+
+                <!-- Right-aligned items -->
+                <ul class="navbar-nav">
+                    {% if 'user_id' in session %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user_profile') }}">PROFILE</a>
+                    </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        <a class="nav-link" href="{{ url_for('login') }}">LOG IN</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        <a class="nav-link" href="{{ url_for('register') }}">REGISTER</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -68,9 +131,9 @@
         {% endblock %}
     </main>
 
-    <footer class="footer bg-light">
+    <footer class="footer bg-light fixed-bottom">
         <div class="container">
-            <span class="text-muted">&copy; 2024 FlaskApp.</span>
+            <span class="text-muted">&copy; 2024 ClearSkies.</span>
         </div>
     </footer>
 
