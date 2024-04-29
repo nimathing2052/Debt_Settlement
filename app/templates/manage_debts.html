@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+{% block content %}
+<form method="post">
+    <label for="debtors">Select Debtors:</label>
+    <select name="debtors" id="debtors" multiple>
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+    <label for="amount">Enter Amount:</label>
+    <input type="number" id="amount" name="amount">
+    <br><br>
+    <button type="submit">Add Debt</button>
+</form>
+
+<h2>Your Debts:</h2>
+<ul>
+    {% for debt in debts %}
+    <li>{{ debt.debtor_1 }}: {{ debt.monetary_value }}</li>
+    {% endfor %}
+</ul>
+
+<h2>Debts Owed to You:</h2>
+<ul>
+    {% for debt in other_users_debts %}
+    <li>{{ debt.payer }}: {{ debt.monetary_value }}</li>
+    {% endfor %}
+</ul>
+
+<p>Total Debt Owed to You: {{ total_debt }}</p>
+
+{% endblock %}

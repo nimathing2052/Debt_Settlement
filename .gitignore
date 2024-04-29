@@ -1,9 +1,5 @@
 .DS_Store
 .idea/
 .venv/
-venv/**
+venv/
 Debt_Settlement/
-*.pyc
-*.pyi
-app/__pycache__/
-app/venv/**

@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% block content %}
+<head>
+    <title>Update Monetary Value</title>
+</head>
+<body>
+    <h1>Update Monetary Value</h1>
+    <form action="{{ url_for('update_monetary_value') }}" method="post">
+        <label for="amount">Amount to Add:</label><br>
+        <input type="text" id="amount" name="amount"><br><br>
+        <input type="submit" value="Update">
+    </form>
+</body>
+{% endblock %}
