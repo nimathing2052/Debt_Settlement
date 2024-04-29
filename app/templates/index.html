@@ -1,89 +1,24 @@
-<!DOCTYPE html>
-<html>
 {% extends "layout.html" %}
 
 {% block content %}
-<head>
-    <title>Welcome</title>
-    <style>
-        body {
-            font-family: sans-serif;
-        }
-        .debt-entry {
-            margin-bottom: 15px;
-        }
-        button {
-            padding: 10px;
-            background-color: #3091f9;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <br>
-    <h4>Welcome to <b>ClearSkies</b>, your personal guide to settling debts!</h4>
-    <p>Enjoy a simplified experience of eliminating financial clouds and welcoming clear skies ahead.</p>
-    <br>
-    <form method="POST">
-        <div id="debt-entries">
-            <div class="debt-entry">
-                <label for="debtor0">Debtor:</label>
-                <input type="text" id="debtor0" name="debtor0" required>
-            </div>
-            <div class="debt-entry">
-                <label for="creditor0">Creditor:</label>
-                <input type="text" id="creditor0" name="creditor0" required>
-            </div>
-            <div class="debt-entry">
-                <label for="amount0">Amount:</label>
-                <input type="number" id="amount0" name="amount0" required step="0.01">
-            </div>
-        </div>
+<div class="container">
+    <h1>Welcome to Friendly Debt Settlement</h1>
+    <p>Welcome, {{ session.first_name }}! Ready to manage your debts?</p>
+    <body>
+        Change this landing page, it doesn't make sense to have just add debts, i suggest it has a range of different parts from elsehwere, so it acts like a sort of hub, with an add debt + settle up + overview set of widgets
         <br>
-        <button type="button" onclick="addDebtField()">Add Another Debt</button>
-        <button type="submit">Calculate</button>
-    </form>
+        <br>
+        ...
+    </body>
     
+    <form method="POST">
+        <label for="item_name">Item Name:</label>
+        <input type="text" id="item_name" name="item_name" required>
 
-    <script>
-        let count = 1;
-        function addDebtField() {
-            const container = document.getElementById('debt-entries');
-            const newEntry = document.createElement('div');
-            newEntry.classList.add('debt-entry');
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required step="0.01">
 
-            newEntry.innerHTML = `
-            <div id="debt-entries">
-                <br>
-                <br>
-                <div class="debt-entry">
-                    <label for="debtor0">Debtor:</label>
-                    <input type="text" id="debtor0" name="debtor0" required>
-                </div>
-                <div class="debt-entry">
-                    <label for="creditor0">Creditor:</label>
-                    <input type="text" id="creditor0" name="creditor0" required>
-                </div>
-                <div class="debt-entry">
-                    <label for="amount0">Amount:</label>
-                    <input type="number" id="amount0" name="amount0" required step="0.01">
-                </div>
-            </div>
-            `;
-
-            container.appendChild(newEntry);
-            count++;
-        }
-    </script>
-</body>
-
-<br>
-<img src="{{url_for('static', filename='clouds_2.png')}}" class="clouds" align="right" />
-
+        <button type="submit" class="btn btn-primary">Add Debt</button>
+    </form>
+</div>
 {% endblock %}
-</html>

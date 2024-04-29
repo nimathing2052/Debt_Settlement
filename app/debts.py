@@ -1,39 +1,89 @@
-from flask import render_template, session, request
-from app.models import Transaction, User, db # remove transaction when finalising here
+from flask import Flask, request, session, flash, redirect, url_for, render_template
+from app.models import Transaction, User, db
 from .debt_resolver import Solution, read_db_to_adjacency_matrix
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import func
+from datetime import datetime
+from .forms import SendMoneyForm
+from sqlalchemy.orm import aliased
 
-# NB: CHANGED ALL 'UserItem' model references to new model 'Transaction'
 
 def init_debt_routes(app):
     @app.route("/user_profile")
     def user_profile(title='Profile page'):
-        return render_template('user_profile.html',
-                               title=title)
+        if 'user_id' not in session:
+            flash('Please log in to view your profile.', 'warning')
+            return redirect(url_for('login'))
+            # Here you can add more logic to handle user profile data
+        return render_template('user_profile.html', title='Profile page')
 
-    @app.route('/settle_debts') # I WROTE THE FUNCTIONS FOR THIS BELOW, THIS CAN BE REMOVED - CHECK
+    @app.route('/settle_debts')
     def settle_debts_view():
-        if 'user_id' in session:
-            # This is a placeholder for the settlement algorithm
-            transactions = []  # Simulate transactions
-            return render_template('result.html', transactions=transactions)
-        else:
-            return render_template('index.html')
+        if 'user_id' not in session:
+            flash('Please log in to proceed.', 'warning')
+            return redirect(url_for('login'))
 
+        # Placeholder for settlement algorithm
+        transactions = []  # Simulate transactions
+        return render_template('result.html', transactions=transactions)
+
+    @app.route('/dashboard')
+    def dashboard():
+        if 'user_id' not in session:
+            flash('Please log in to view the dashboard.', 'warning')
+            return redirect(url_for('login'))
+        
+        # Subquery for total credits per user
+        credit_subquery = db.session.query(
+            Transaction.payer_id.label('user_id'),
+            func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
+        ).group_by(Transaction.payer_id).subquery()
+
+        # Subquery for total debts per user
+        debt_subquery = db.session.query(
+            Transaction.debtor_id.label('user_id'),
+            func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
+        ).group_by(Transaction.debtor_id).subquery()
+
+        # Main query to calculate net balances, total credits, and total debts
+        net_balances = db.session.query(
+            User.first_name, User.last_name,
+            func.coalesce(credit_subquery.c.total_credit, 0).label('total_incomings'),
+            func.coalesce(debt_subquery.c.total_debt, 0).label('total_outgoings'),
+            (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label('net_balance')
+        ).outerjoin(credit_subquery, User.id == credit_subquery.c.user_id) \
+        .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
+        .group_by(User.first_name, User.last_name) \
+        .all()
+
+        # Define aliases for User model
+        Payer = aliased(User, name='payer')
+        Debtor = aliased(User, name='debtor')
+
+
+        # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
+        transactions = db.session.query(
+            Transaction.item_name,
+            Payer.first_name.label('payer_first_name'),
+            Payer.last_name.label('payer_last_name'),
+            Debtor.first_name.label('debtor_first_name'),
+            Debtor.last_name.label('debtor_last_name'),
+            Transaction.amount,
+            Transaction.time_date
+        ).join(Payer, Payer.id == Transaction.payer_id) \
+        .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
+
+        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
+    
     @app.route('/debt_view')
     def show_debts():
-        try:
-            # This is where you would normally fetch your debts, e.g., from a database
-            debts = fetch_debts_from_database()
-        except SomeException:
-            # If fetching debts fails for some reason, set debts to an empty list
-            debts = []
+        if 'user_id' not in session:
+            flash('Please log in to view debts.', 'warning')
+            return redirect(url_for('login'))
 
-        # Check if the debts list is empty and display a message accordingly
-        if not debts:
-            message = "You have no debt"
-        else:
-            message = None  # or any logic you want when there are debts
-
+        user_id = session.get('user_id')
+        debts = Transaction.query.filter_by(debtor_id=user_id).all()
+        message = "You have no debt" if not debts else None
         return render_template('debt_view.html', debts=debts, message=message)
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
@@ -58,162 +108,206 @@ def init_debt_routes(app):
     # Route to handle input of monetary value and item name
     @app.route('/input_monetary_value', methods=['GET', 'POST'])
     def input_monetary_value():
+        if 'user_id' not in session:
+            flash('Please log in to continue.', 'warning')
+            return redirect(url_for('auth.login'))
+
         if request.method == 'POST':
-            item_name = request.form['item_name']
-            monetary_value = request.form['monetary_value']
-            user_id = session.get('user_id')  # Retrieve the logged-in user's ID from the session
+            try:
+                user_id = session['user_id']
+                item_name = request.form.get('item_name')
+                amount = float(request.form.get('monetary_value'))
 
-            # Retrieve the logged-in user
-            user = User.query.get(user_id)
-            if user:
-                # Set the payer to the logged-in user's email
-                payer = user.email
+                if not item_name or amount <= 0:
+                    flash('Invalid input: Item name must be provided and amount must be greater than zero.', 'warning')
+                    return redirect(url_for('input_monetary_value'))
 
-                # Create the Transaction object with all required fields
-                debt_item = Transaction(item_name=item_name, payer=payer, monetary_value=monetary_value, user=user)
-                db.session.add(debt_item)
+                new_transaction = Transaction(
+                    item_name=item_name,
+                    amount=amount,  # assuming a positive amount indicates a credit
+                    payer_id=user_id,  # assuming the current user is the payer
+                    debtor_id=user_id  # if the user is paying themselves, like adding a credit
+                )
+
+                db.session.add(new_transaction)
                 db.session.commit()
-                return 'Monetary value updated successfully'
-            else:
-                return 'User not found'
+                flash('Monetary value added successfully.', 'success')
 
+            except ValueError:
+                flash('Invalid amount entered.', 'danger')
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('An error occurred while adding the monetary value.', 'danger')
+                # In production, you might log the error here
         return render_template('input_monetary_value.html')
 
     # Route to retrieve and display monetary values for the logged-in user
     @app.route('/show_monetary_values')
     def show_monetary_values():
-        # Retrieve the user's ID from the session
+        # Check if user is logged in
         user_id = session.get('user_id')
-        if user_id:
-            # Query the Transaction table to retrieve monetary values associated with the user ID
-            monetary_values = Transaction.query.filter_by(user_id=user_id).with_entities(Transaction.monetary_value).all()
+        if not user_id:
+            flash('Please log in to view monetary values.', 'warning')
+            return redirect(url_for('login'))
 
-            # Calculate the total monetary value
-            total_monetary_value = sum(value[0] for value in monetary_values)
+        try:
+            # Query the database for transactions where the user is the payer
+            credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
+            total_credit = sum(transaction.amount for transaction in credit_transactions)
 
-            return render_template('show_balance.html', monetary_values=monetary_values,
-                                   total_monetary_value=total_monetary_value)
-        else:
-            return 'User not logged in'
+            # Query the database for transactions where the user is the debtor
+            debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
+            total_debit = sum(transaction.amount for transaction in debit_transactions)
 
+            # Calculate net balance
+            net_balance = total_credit - total_debit
+
+            # Prepare data for template
+            monetary_values = [
+                {'description': 'Total Credit', 'value': total_credit},
+                {'description': 'Total Debit', 'value': -total_debit},  # Debit shown as positive number
+                {'description': 'Net Balance', 'value': net_balance}
+            ]
+
+            return render_template(
+                'show_balance.html',
+                monetary_values=monetary_values,
+                total_monetary_value=net_balance  # Or whatever summary statistic you prefer
+            )
+        except Exception as e:
+            # In a production app, you'd want to log this error.
+            flash('An error occurred while fetching monetary values.', 'danger')
+            return redirect(url_for('user_profile'))
 
     # Route to display the list of users and send money
-    @app.route('/send_money', methods=['GET', 'POST'])
-    def send_money():
-        # Retrieve logged-in user's monetary value
-        user_id = session.get('user_id')
-        sender = Transaction.query.get(user_id)
-        monetary_values = Transaction.query.filter_by(user_id=user_id).with_entities(Transaction.monetary_value).all()
-        # sender_monetary_value = db.session.query(func.sum(Transaction.monetary_value)).filter_by(id=user_id).scalar() or 0.0
-        sender_monetary_value = sum(value[0] for value in monetary_values)
 
-        if request.method == 'POST':
-            # Retrieve recipient's information
-            recipient_id = int(request.form['recipient'])
-            recipient = Transaction.query.get(recipient_id)
-
-            # Retrieve amount to send
-            amount = float(request.form['amount'])
-
-            # Check if sender has sufficient funds
-            if sender_monetary_value < amount:
-                return 'Insufficient funds'
-
-            user1 = User.query.get(user_id)
-            if user1:
-                # Set the payer to the logged-in user's email
-                # payer = user.email
-                payer = user1.email
-
-                # Create the Transaction object with all required fields
-                debt_item = Transaction(item_name="Payment", payer=payer, monetary_value=-amount, user=user1)
-                db.session.add(debt_item)
-                db.session.commit()
-            # Update sender's monetary value
-            sender.monetary_value -= amount
-
-            user2 = User.query.get(recipient_id)
-            if user2:
-                # Set the payer to the logged-in user's email
-                # payer = user.email
-                payer = user2.email
-
-                # Create the Transaction object with all required fields
-                debt_item = Transaction(item_name="Payment", payer=payer, monetary_value=amount, user=user2)
-                db.session.add(debt_item)
-                db.session.commit()
-
-            # Update recipient's monetary value
-            recipient.monetary_value += amount
-
-            # Commit changes to the database
-            db.session.commit()
-
-            # Update sender's monetary value in the database after successful transfer
-            # sender = User.query.get(user_id)  # Retrieve sender object again
-            sender.monetary_value -= amount  # Subtract the transferred amount
-            db.session.add(Transaction(id=user_id, monetary_value=int(-amount)))
-            # db.session.commit()  # Commit the update to the database
-
-            return 'Transfer successful'
-
-        # Get all users except the logged-in user
-        users = User.query.filter(User.id != user_id).all()
-
-        return render_template('send_money.html', users=users, sender_monetary_value=sender_monetary_value)
 
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
-            # Retrieve the logged-in user's ID
-            user_id = session.get('user_id')
+            if 'user_id' not in session:
+                flash('Please log in to input debts.', 'warning')
+                return redirect(url_for('login'))
 
-            # Retrieve the selected debtor's ID and debt amount from the form
-            debtor_id = int(request.form['debtor'])
-            amount = float(request.form['amount'])
+            user_id = session['user_id']
+            debtor_id = int(request.form.get('debtor'))
+            amount = float(request.form.get('amount'))
 
-            # Retrieve the debtor's information
-            debtor = User.query.get(debtor_id)
+            payer = User.query.get_or_404(user_id)
+            debtor = User.query.get_or_404(debtor_id)
 
-            # Save the debt under the user's debts column
-            user = User.query.get(user_id)
-            user.debts += amount
+            try:
+                debt_item = Transaction(
+                    item_name="Debt", 
+                    amount=-amount, 
+                    payer_id=payer.id, 
+                    debtor_id=debtor.id)
+                
+                db.session.add(debt_item)
+                db.session.commit()
+                flash('Debt recorded successfully.', 'success')
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash(str(e), 'danger')
 
-            # Save the debt information in the Transaction table
-            debt_item = Transaction(item_name="Debt", monetary_value=-amount, user_id=user_id)
-            debt_item.debtor_1 = debtor.first_name + " " + debtor.last_name
-            db.session.add(debt_item)
-            db.session.commit()
+            return redirect(url_for('input_debts'))
 
-            # Retrieve all users who have the current user's name in their list of debts
-            users_who_owe = User.query.filter(User.debts > 0).all()
-
-            # Print the names of users who owe the current user along with their debt amounts
-            for user_who_owes in users_who_owe:
-                print(user_who_owes.first_name, user_who_owes.last_name, "owes you", user_who_owes.debts)
-
-            # Calculate the total amount owed to the current user
-            total_debts = sum(user_who_owes.debts for user_who_owes in users_who_owe)
-            print("Total amount owed to you:", total_debts)
-
-            # Redirect or render a template as needed
-            # return redirect(url_for('some_route'))
-
-        # Render the template with the list of users for selection
         users = User.query.all()
         return render_template('input_debts.html', users=users)
-
 
     @app.route('/settle_up', methods=['GET', 'POST'])
     def settle_up():
         if request.method == 'POST':
-            adjacency_matrix, persons = read_db_to_adjacency_matrix()
-            solver = Solution()
-            payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-            return render_template('result2.html', payments=payment_instructions)
-        return render_template('settle_up.html')
+            try:
+                adjacency_matrix, persons = read_db_to_adjacency_matrix()
+                solver = Solution()
+                payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
+                return render_template('result2.html', payments=payment_instructions)
+            except NotFound:
+                flash('No transactions found to settle up.', 'warning')
+            except Exception as e:
+                flash(str(e), 'danger')
 
-
-    @app.route('/settle_up_form')
-    def settle_up_form():
         return render_template('settle_up.html')
+    
+
+    @app.route('/send_money', methods=['GET', 'POST'])
+    def send_money():
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Please log in to send money.', 'warning')
+            return redirect(url_for('login'))
+
+        form = SendMoneyForm()
+        form.recipient.choices = [(u.id, u.first_name + ' ' + u.last_name) for u in
+                                  User.query.filter(User.id != user_id).all()]
+
+        if form.validate_on_submit():
+            recipient_id = form.recipient.data
+            amount = form.amount.data
+
+            if not has_sufficient_funds(user_id, amount):
+                flash('Insufficient funds.', 'warning')
+                return redirect(url_for('send_money'))
+
+            try:
+                transaction = Transaction(
+                    item_name1="Transfer",
+                    amount=-amount,  # Negative because it's a debit from the payer
+                    payer_id=user_id,
+                    debtor_id=recipient_id,
+                    time_date=datetime.utcnow()
+                )
+                db.session.add(transaction)
+                db.session.commit()
+                flash('Money sent successfully!', 'success')
+                return redirect(url_for('user_profile'))
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                flash('Failed to send money: ' + str(e), 'danger')
+                return render_template('send_money.html', form=form)
+
+        return render_template('send_money.html', form=form)
+    def has_sufficient_funds(user_id, amount):
+        total_credit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.debtor_id == user_id).scalar() or 0
+        total_debit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.payer_id == user_id).scalar() or 0
+        return (total_credit + total_debit) >= amount
+    
+
+    @app.route('/dashboard_personal')
+    def dashboard_personal():
+        user_id = session.get('user_id')
+        if not user_id:
+            flash('Please log in', 'warning')
+            return redirect(url_for('login'))
+
+        try:
+            # Fetch credit and debit transactions
+            credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
+            debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
+
+            # Sum up credits and debits
+            total_credit = sum(transaction.amount for transaction in credit_transactions)
+            total_debit = sum(transaction.amount for transaction in debit_transactions)
+
+            # Calculate net balance
+            net_balance = total_credit - total_debit
+
+            # Prepare data for template
+            monetary_values = {
+                'credits': credit_transactions,
+                'debts': debit_transactions,
+                'total_credit': total_credit,
+                'total_debit': total_debit,
+                'net_balance': net_balance
+            }
+
+            # Combine credit and debit transactions for the transaction history table
+            transactions = credit_transactions + debit_transactions
+            transactions.sort(key=lambda x: x.time_date, reverse=True)
+
+            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions)
+
+        except Exception as e:
+            flash('Error retrieving your data', 'error')
+            return redirect(url_for('login'))

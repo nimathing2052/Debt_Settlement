@@ -1,20 +1,23 @@
 {% extends 'layout.html' %}
 {% block content %}
-    <title>Settle Debt</title>
+<head>
+    <title>Send Money</title>
 </head>
 <body>
-    <h1>Settle Debt</h1>
-    <p>Your current balance: {{ sender_monetary_value }}</p>
-    <form method="post">
-        <label for="recipient">Select recipient:</label>
-        <select id="recipient" name="recipient">
-            {% for user in users %}
-                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select><br><br>
-        <label for="amount">Enter amount:</label>
-        <input type="number" id="amount" name="amount" step="0.01" min="0.01" required><br><br>
-        <input type="submit" value="Send">
+    <h1>Send Money</h1>
+    <form method="POST" action="{{ url_for('send_money') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.recipient.label(class="form-label") }}
+            {{ form.recipient(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.amount.label(class="form-label") }}
+            {{ form.amount(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
     </form>
 </body>
 {% endblock %}

@@ -35,6 +35,7 @@ def init_auth_routes(app):
 
             if user and check_password_hash(user.password_hash, password):
                 session['user_id'] = user.id
+                session['first_name'] = user.first_name  
                 flash('You have successfully logged in!', 'success')
                 return redirect(url_for('home'))
             else:

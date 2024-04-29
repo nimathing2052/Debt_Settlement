@@ -13,7 +13,7 @@ class DebtItem(db.Model):
     debtor_3 = db.Column(db.String(50), nullable=True)
     monetary_value = db.Column(db.Float, nullable=False)
     group_id = db.Column(db.String(50), nullable=True)
-    time_date = db.Column(db.DateTime, nullable=False, default=datetime.UTC)
+    time_date = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
