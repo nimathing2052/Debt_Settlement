@@ -1,10 +1,52 @@
 {% extends 'layout.html' %}
 {% block content %}
-<form method="post">
-    <label for="item_name">Enter item name:</label><br>
-    <input type="text" id="item_name" name="item_name"><br>
-    <label for="monetary_value">Enter monetary value:</label><br>
-    <input type="text" id="monetary_value" name="monetary_value"><br>
-    <input type="submit" value="Submit">
-</form>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Monetary Value</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .item {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            border-radius: 10px;
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px;
+            background-color: #3091f9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <h4>Deposit ??</h4>
+    <form method="post">
+        <div id="items">
+            <div class="item">
+                <label for="item_name">Enter item name:</label>
+                <input type="text" id="item_name" name="item_name">
+            </div>
+            <div class="item">
+                <label for="monetary_value">Enter monetary value:</label>
+                <input type="number" id="monetary_value" name="monetary_value" step="0.01">
+            </div>
+        </div>
+        <button type="submit" value="Submit"> Submit</button>
+    </form>
+</body>
 {% endblock %}
