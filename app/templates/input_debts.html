@@ -4,32 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Input Debts</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        .debt-entry {
+            margin-bottom: 15px;
+        }
+        .debt-entry label {
+            width: 240px;
+            margin-right: 10px;
+            text-align: left;
+        }
+
+        .debt-entry input, .debt-entry select {
+            flex-grow: 1;
+        }
+        button {
+            padding: 10px;
+            background-color: #3091f9;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>Input Debts</h1>
-    <form method="POST" action="/input_debts">
-        <label for="debtor">Who gets the money?</label>
-        <select id="debtor" name="debtor">
-            {% for user in users %}
-            <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="payer">Who has to pay some money?</label>
-        <select id="payer" name="payer">
-            {% for user in users %}
-            <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="item_name">What got bought?</label>
-        <input type="text" id="item_name" name="item_name" placeholder="The item" required>
-        <br>
-        <label for="amount"> How much do they have to cough up?</label>
-        <input type="number" id="amount" name="amount" placeholder="Price"step="0.01" required>
-        <br>
+    <br>
+    <h3>Input debt here!</h3>
+    <br>
+    <form method="POST">
+        <div id="debt-entries">
+            <div class="debt-entry">
+                <label for="debtor">Who gets the money?</label>
+                <select id="debtor" name="debtor">
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="debt-entry">
+                <label for="payer">Who owes some money?</label>
+                <select id="payer" name="payer">
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="debt-entry">
+                <label for="item_name">What item(s) were purchased?</label>
+                <input type="text" id="item_name" name="item_name" placeholder="Item(s)" required>
+            </div>
+            <div class="debt-entry">
+                <label for="amount">How much do they owe?</label>
+                <input type="number" id="amount" name="amount" placeholder="Price"step="0.01" required>
+            </div>
+        </div>
         <br>
         <button type="submit">Submit</button>
     </form>
+    <br>
+    <br>
+
 </body>
 {% endblock %}
