@@ -9,3 +9,4 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=1) 
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+

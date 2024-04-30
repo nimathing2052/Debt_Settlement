@@ -1,6 +1,6 @@
 from flask import Flask, request, session, flash, redirect, abort, url_for, render_template
 from app.models import Transaction, User, db
-from .debt_resolver import Solution, read_db_to_adjacency_matrix
+from .debt_resolver import Solution, read_db_to_adjacency_matrix, build_adjacency_matrix_from_transactions, resolve_group_debts
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -333,6 +333,23 @@ def init_debt_routes(app):
         else:
             flash('Member not found', 'error')
         return redirect(url_for('view_group', group_id=group_id))
+
+    @app.route('/settle_group_debts', methods=['GET', 'POST'])
+    def settle_group_debts():
+        groups = Group.query.all()  # Fetch all groups the user belongs to
+        if request.method == 'POST':
+            if 'user_id' not in session:
+                flash('Please log in to Settle Group Debts', 'warning')
+                return redirect(url_for('login'))
+
+            group_id = request.form.get('group_id', type=int)
+            group = Group.query.get_or_404(group_id)
+            transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+
+            _, payment_instructions = resolve_group_debts(transactions)
+            return render_template('settle_group_debts.html', groups=groups, payment_instructions=payment_instructions)
+
+        return render_template('settle_group_debts.html', groups=groups)
 
     def has_view_permission(user, group_id):
         """More advanced permission checking."""

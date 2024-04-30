@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Select Group for Debt Settlement</h2>
+    {% if groups %}
+        <ul>
+            {% for group in groups %}
+                <li>
+                    {{ group.name }}
+                    <form action="{{ url_for('settle_group_debts') }}" method="post">
+                        <input type="hidden" name="group_id" value="{{ group.id }}">
+                        <button type="submit" class="btn btn-sm btn-success">Settle</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You don't belong to any groups.</p>
+    {% endif %}
+
+    {% if payment_instructions %}
+        <div class="mt-4">
+            <h4>Settlement Instructions</h4>
+            <ul>
+                {% for instruction in payment_instructions %}
+                    <li>{{ instruction }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

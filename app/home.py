@@ -1,7 +1,7 @@
 from flask import request, session, flash, redirect, url_for, render_template
 from app.models import User, Transaction, db
 
-def init_home__routes(app):
+def init_home_routes(app):
     @app.route('/', methods=['GET', 'POST'])
     @app.route('/home', methods=['GET', 'POST'])
     def home():

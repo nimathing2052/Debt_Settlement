@@ -109,3 +109,108 @@ def read_db_to_adjacency_matrix():
         adjacency_matrix[i][j] += transaction.amount
 
     return adjacency_matrix, persons
+
+def build_adjacency_matrix_from_transactions(transactions):
+    persons = {}
+    index = 0
+    adjacency_matrix = []
+
+    for transaction in transactions:
+        if transaction.payer_id not in persons:
+            persons[transaction.payer_id] = index
+            index += 1
+            adjacency_matrix.append([0] * len(persons))
+
+        if transaction.debtor_id not in persons:
+            persons[transaction.debtor_id] = index
+            index += 1
+            adjacency_matrix.append([0] * len(persons))
+
+        payer_index = persons[transaction.payer_id]
+        debtor_index = persons[transaction.debtor_id]
+        adjacency_matrix[payer_index][debtor_index] += transaction.amount
+        # Ensure mutual debts are considered:
+        adjacency_matrix[debtor_index][payer_index] -= transaction.amount
+
+    return adjacency_matrix, list(persons.keys())
+
+def resolve_group_debts(transactions):
+    # Mapping user IDs to matrix indices
+    user_index = {}
+    current_index = 0
+    for transaction in transactions:
+        if transaction.payer_id not in user_index:
+            user_index[transaction.payer_id] = current_index
+            current_index += 1
+        if transaction.debtor_id not in user_index:
+            user_index[transaction.debtor_id] = current_index
+            current_index += 1
+
+    # Create adjacency matrix for the Ford-Fulkerson algorithm
+    size = len(user_index)
+    graph = [[0] * size for _ in range(size)]
+
+    for transaction in transactions:
+        payer_idx = user_index[transaction.payer_id]
+        debtor_idx = user_index[transaction.debtor_id]
+        graph[payer_idx][debtor_idx] += transaction.amount
+
+    # Placeholder source and sink - in an actual application, these would be dynamically determined
+    source = 0  # Typically the group admin or an arbitrary point
+    sink = size - 1  # Could be another arbitrary point or calculated based on conditions
+
+    max_flow = ford_fulkerson(graph, source, sink)
+
+    # Convert the flow values back to human-readable transaction instructions
+    payment_instructions = []
+    for i in range(size):
+        for j in range(size):
+            if graph[i][j] > 0:
+                payer_id = list(user_index.keys())[list(user_index.values()).index(i)]
+                debtor_id = list(user_index.keys())[list(user_index.values()).index(j)]
+                payment_instructions.append(f"User {payer_id} should pay {graph[i][j]} to User {debtor_id}")
+
+    return max_flow, payment_instructions
+
+# Function to implement the Ford-Fulkerson method for maximum flow problem
+def ford_fulkerson(graph, source, sink):
+    parent = [-1] * len(graph)
+    max_flow = 0
+
+    def bfs(residual_graph):
+        visited = [False] * len(residual_graph)
+        queue = [source]
+        visited[source] = True
+
+        while queue:
+            u = queue.pop(0)
+
+            for ind, val in enumerate(residual_graph[u]):
+                if not visited[ind] and val > 0:
+                    queue.append(ind)
+                    visited[ind] = True
+                    parent[ind] = u
+                    if ind == sink:
+                        return True
+        return False
+
+    residual_graph = [row[:] for row in graph]
+
+    while bfs(residual_graph):
+        path_flow = float('Inf')
+        s = sink
+
+        while s != source:
+            path_flow = min(path_flow, residual_graph[parent[s]][s])
+            s = parent[s]
+
+        v = sink
+        while v != source:
+            u = parent[v]
+            residual_graph[u][v] -= path_flow
+            residual_graph[v][u] += path_flow
+            v = parent[v]
+
+        max_flow += path_flow
+
+    return max_flow
