@@ -1,8 +1,18 @@
 from flask import request, render_template, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from .models import transaction, User, db
+from flask_login import LoginManager
+
 
 def init_auth_routes(app):
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         if request.method == 'POST':

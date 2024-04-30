@@ -1,4 +1,4 @@
-from flask import Flask, request, session, flash, redirect, url_for, render_template
+from flask import Flask, request, session, flash, redirect, abort, url_for, render_template
 from app.models import Transaction, User, db
 from .debt_resolver import Solution, read_db_to_adjacency_matrix
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,6 +7,8 @@ from datetime import datetime
 from .forms import SendMoneyForm
 from sqlalchemy.orm import aliased
 from .models import Group, GroupTransaction
+from flask_login import current_user
+from .models.group import UserGroup
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -14,7 +16,6 @@ def init_debt_routes(app):
         if 'user_id' not in session:
             flash('Please log in to view your profile.', 'warning')
             return redirect(url_for('login'))
-            # Here you can add more logic to handle user profile data
         return render_template('user_profile.html', title='Profile page')
 
     @app.route('/settle_debts')
@@ -23,10 +24,10 @@ def init_debt_routes(app):
             flash('Please log in to proceed.', 'warning')
             return redirect(url_for('login'))
 
-        # Placeholder for settlement algorithm
-        transactions = []  # Simulate transactions
+        transactions = Transaction.query.filter(
+            (Transaction.payer_id == current_user.id) | (Transaction.debtor_id == current_user.id)
+        ).all()
         return render_template('result.html', transactions=transactions)
-
     @app.route('/dashboard')
     def dashboard():
         if 'user_id' not in session:
@@ -198,19 +199,49 @@ def init_debt_routes(app):
     def create_group():
         if request.method == 'POST':
             group_name = request.form.get('group_name')
+            members_ids = request.form.getlist('members')  # Retrieves all selected user IDs from the form
+
             if group_name:
-                group = Group(name=group_name)
-                db.session.add(group)
-                db.session.commit()
-                flash('Group created successfully', 'success')
-                return redirect(url_for('list_groups'))
-        return render_template('create_group.html')
+                existing_group = Group.query.filter_by(name=group_name).first()
+                if existing_group:
+                    flash('A group with this name already exists.', 'warning')
+                else:
+                    try:
+                        group = Group(name=group_name)
+                        db.session.add(group)
+                        db.session.flush()
+
+                        for member_id in members_ids:
+                            user = User.query.get(int(member_id))
+                            if user:
+                                user_group = UserGroup(user_id=user.id, group_id=group.id)
+                                db.session.add(user_group)
+                            else:
+                                flash(f"No user found with ID {member_id}", 'error')
+
+                        db.session.commit()
+                        flash('Group created successfully', 'success')
+                        return redirect(url_for('list_groups'))
+                    except SQLAlchemyError as e:
+                        db.session.rollback()
+                        flash(str(e), 'danger')
+            else:
+                flash('Please provide a group name', 'warning')
+
+        all_users = User.query.all()
+        return render_template('create_group.html', all_users=all_users)
 
     @app.route('/list_groups')
     def list_groups():
-        groups = Group.query.all()
-        return render_template('list_groups.html', groups=groups)
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
+        try:
+            groups = Group.query.paginate(page=page, per_page=per_page, error_out=False)
+        except Exception as e:
+            print(f"Database error: {e}")
+            abort(500, description="Error accessing the database")
 
+        return render_template('list_groups.html', groups=groups, current_user=current_user)
     @app.route('/add_transaction_to_group', methods=['GET', 'POST'])
     def add_transaction_to_group():
         if request.method == 'POST':
@@ -231,7 +262,14 @@ def init_debt_routes(app):
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
         transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
-        return render_template('view_group.html', group=group, transactions=transactions)
+        all_users = User.query.all()  # Assuming you still want to show all users for adding members
+
+        # Authorization check
+        # if not has_view_permission(current_user, group_id):
+        #     flash('You are not authorized to view this group.', 'warning')
+        #     return redirect(url_for('list_groups'))
+        # Ensure the user is still a member of the group
+        return render_template('view_group.html', group=group, transactions=transactions, all_users=all_users)
 
     @app.route('/dashboard_personal')
     def dashboard_personal():
@@ -270,3 +308,47 @@ def init_debt_routes(app):
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
+
+    @app.route('/add_member_to_group', methods=['POST'])
+    def add_member_to_group():
+        user_id = request.form.get('user_id', type=int)
+        group_id = request.form.get('group_id', type=int)
+        if not user_id or not group_id:
+            flash('Invalid user or group ID', 'error')
+            return redirect(url_for('list_groups'))
+
+        user_group = UserGroup(user_id=user_id, group_id=group_id)
+        db.session.add(user_group)
+        db.session.commit()
+        flash('Member added successfully', 'success')
+        return redirect(url_for('view_group.html', group_id=group_id))
+
+    @app.route('/remove_member_from_group/<int:group_id>/<int:user_id>', methods=['POST'])
+    def remove_member_from_group(group_id, user_id):
+        user_group = UserGroup.query.filter_by(group_id=group_id, user_id=user_id).first()
+        if user_group:
+            db.session.delete(user_group)
+            db.session.commit()
+            flash('Member removed successfully', 'success')
+        else:
+            flash('Member not found', 'error')
+        return redirect(url_for('view_group', group_id=group_id))
+
+    def has_view_permission(user, group_id):
+        """More advanced permission checking."""
+        user_id = session.get('user_id')
+
+        user_group = UserGroup.query.filter_by(user_id=user_id, group_id=group_id).first()
+
+        # Example checks - customize based on your rules:
+
+        if not user_group:  # User is not a member
+            return False
+
+        if user_group.is_admin:  # Admins have full access
+            return True
+
+        if group.visibility == 'private' and not user_group.is_approved:  # Special conditions for private groups
+            return False
+
+        return True  # Default: Allow access if other checks pass
