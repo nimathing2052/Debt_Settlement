@@ -11,7 +11,6 @@ def create_app():
     from .home import init_home__routes
     from .auth import init_auth_routes
     from .debts import init_debt_routes
-
     # Initialize routes
     init_home__routes(app)
     init_auth_routes(app)

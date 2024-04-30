@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 from datetime import datetime
 from .forms import SendMoneyForm
 from sqlalchemy.orm import aliased
+from .models import Group, GroupTransaction
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -73,17 +74,7 @@ def init_debt_routes(app):
         .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
 
         return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
-    
-    @app.route('/debt_view')
-    def show_debts():
-        if 'user_id' not in session:
-            flash('Please log in to view debts.', 'warning')
-            return redirect(url_for('login'))
 
-        user_id = session.get('user_id')
-        debts = Transaction.query.filter_by(debtor_id=user_id).all()
-        message = "You have no debt" if not debts else None
-        return render_template('debt_view.html', debts=debts, message=message)
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
     def update_monetary_value():
@@ -197,50 +188,50 @@ def init_debt_routes(app):
                 flash(str(e), 'danger')
 
         return render_template('settle_up.html')
-    
 
-    @app.route('/send_money', methods=['GET', 'POST'])
-    def send_money():
-        user_id = session.get('user_id')
-        if not user_id:
-            flash('Please log in to send money.', 'warning')
-            return redirect(url_for('login'))
-
-        form = SendMoneyForm()
-        form.recipient.choices = [(u.id, u.first_name + ' ' + u.last_name) for u in
-                                  User.query.filter(User.id != user_id).all()]
-
-        if form.validate_on_submit():
-            recipient_id = form.recipient.data
-            amount = form.amount.data
-
-            if not has_sufficient_funds(user_id, amount):
-                flash('Insufficient funds.', 'warning')
-                return redirect(url_for('send_money'))
-
-            try:
-                transaction = Transaction(
-                    item_name1="Transfer",
-                    amount=-amount,  # Negative because it's a debit from the payer
-                    payer_id=user_id,
-                    debtor_id=recipient_id,
-                    time_date=datetime.utcnow()
-                )
-                db.session.add(transaction)
-                db.session.commit()
-                flash('Money sent successfully!', 'success')
-                return redirect(url_for('user_profile'))
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                flash('Failed to send money: ' + str(e), 'danger')
-                return render_template('send_money.html', form=form)
-
-        return render_template('send_money.html', form=form)
     def has_sufficient_funds(user_id, amount):
         total_credit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.debtor_id == user_id).scalar() or 0
         total_debit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.payer_id == user_id).scalar() or 0
         return (total_credit + total_debit) >= amount
-    
+
+    @app.route('/create_group', methods=['GET', 'POST'])
+    def create_group():
+        if request.method == 'POST':
+            group_name = request.form.get('group_name')
+            if group_name:
+                group = Group(name=group_name)
+                db.session.add(group)
+                db.session.commit()
+                flash('Group created successfully', 'success')
+                return redirect(url_for('list_groups'))
+        return render_template('create_group.html')
+
+    @app.route('/list_groups')
+    def list_groups():
+        groups = Group.query.all()
+        return render_template('list_groups.html', groups=groups)
+
+    @app.route('/add_transaction_to_group', methods=['GET', 'POST'])
+    def add_transaction_to_group():
+        if request.method == 'POST':
+            group_id = request.form.get('group_id', type=int)
+            payer_id = session.get('user_id')  # Assuming the payer is the logged-in user
+            amount = request.form.get('amount', type=float)
+            description = request.form.get('description', type=str)
+
+            transaction = GroupTransaction(group_id=group_id, payer_id=payer_id, amount=amount, description=description)
+            db.session.add(transaction)
+            db.session.commit()
+            flash('Transaction added successfully', 'success')
+            return redirect(url_for('view_group', group_id=group_id))
+        groups = Group.query.all()
+        return render_template('add_transaction_to_group.html', groups=groups)
+
+    @app.route('/group/<int:group_id>')
+    def view_group(group_id):
+        group = Group.query.get_or_404(group_id)
+        transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+        return render_template('view_group.html', group=group, transactions=transactions)
 
     @app.route('/dashboard_personal')
     def dashboard_personal():

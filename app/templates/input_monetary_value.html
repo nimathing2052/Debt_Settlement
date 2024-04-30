@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<body>
+Deprecated - instead use input_debts.html. 
+<br>
+remove this page, just use add debt
+</body>
+
+<form method="post">
+    <label for="item_name">Enter item name:</label><br>
+    <input type="text" id="item_name" name="item_name"><br>
+    <label for="monetary_value">Enter monetary value:</label><br>
+    <input type="text" id="monetary_value" name="monetary_value"><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

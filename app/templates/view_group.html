@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h1>Group: {{ group.name }}</h1>
+<h2>Transactions</h2>
+<ul>
+{% for transaction in transactions %}
+    <li>{{ transaction.description }}: ${{ transaction.amount }} by {{ transaction.payer_id }}</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import request, render_template, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import DebtItem, User, db
+from .models import transaction, User, db
 
 def init_auth_routes(app):
     @app.route('/register', methods=['GET', 'POST'])

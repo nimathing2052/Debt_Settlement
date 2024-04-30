@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block content %}
+<ul>
+    {% for group in groups %}
+    <li>{{ group.name }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
