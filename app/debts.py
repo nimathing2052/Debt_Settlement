@@ -7,7 +7,6 @@ from datetime import datetime
 from .forms import SendMoneyForm
 from sqlalchemy.orm import aliased
 
-
 def init_debt_routes(app):
     @app.route("/user_profile")
     def user_profile(title='Profile page'):
@@ -105,42 +104,6 @@ def init_debt_routes(app):
         items = Transaction.query.all()
         return render_template('update_money.html', items=items)
 
-    # Route to handle input of monetary value and item name
-    @app.route('/input_monetary_value', methods=['GET', 'POST'])
-    def input_monetary_value():
-        if 'user_id' not in session:
-            flash('Please log in to continue.', 'warning')
-            return redirect(url_for('auth.login'))
-
-        if request.method == 'POST':
-            try:
-                user_id = session['user_id']
-                item_name = request.form.get('item_name')
-                amount = float(request.form.get('monetary_value'))
-
-                if not item_name or amount <= 0:
-                    flash('Invalid input: Item name must be provided and amount must be greater than zero.', 'warning')
-                    return redirect(url_for('input_monetary_value'))
-
-                new_transaction = Transaction(
-                    item_name=item_name,
-                    amount=amount,  # assuming a positive amount indicates a credit
-                    payer_id=user_id,  # assuming the current user is the payer
-                    debtor_id=user_id  # if the user is paying themselves, like adding a credit
-                )
-
-                db.session.add(new_transaction)
-                db.session.commit()
-                flash('Monetary value added successfully.', 'success')
-
-            except ValueError:
-                flash('Invalid amount entered.', 'danger')
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                flash('An error occurred while adding the monetary value.', 'danger')
-                # In production, you might log the error here
-        return render_template('input_monetary_value.html')
-
     # Route to retrieve and display monetary values for the logged-in user
     @app.route('/show_monetary_values')
     def show_monetary_values():
@@ -219,6 +182,10 @@ def init_debt_routes(app):
     @app.route('/settle_up', methods=['GET', 'POST'])
     def settle_up():
         if request.method == 'POST':
+            if 'user_id' not in session:
+                flash('Please log in to Settle Up Functions', 'warning')
+                return redirect(url_for('login'))
+
             try:
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
