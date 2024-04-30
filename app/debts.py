@@ -189,6 +189,7 @@ def init_debt_routes(app):
                 flash('Please log in to input debts.', 'warning')
                 return redirect(url_for('login'))
 
+            item_name = request.form['item_name']
             user_id = session['user_id']
             debtor_id = int(request.form.get('debtor'))
             amount = float(request.form.get('amount'))
@@ -198,7 +199,7 @@ def init_debt_routes(app):
 
             try:
                 debt_item = Transaction(
-                    item_name="Debt", 
+                    item_name=item_name,
                     amount=-amount, 
                     payer_id=payer.id, 
                     debtor_id=debtor.id)
