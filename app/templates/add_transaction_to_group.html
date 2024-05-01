@@ -1,16 +1,87 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
+
 {% block content %}
-<form method="POST">
-    <label for="group_id">Select Group:</label>
-    <select id="group_id" name="group_id">
-        {% for group in groups %}
-        <option value="{{ group.id }}">{{ group.name }}</option>
-        {% endfor %}
-    </select>
-    <label for="amount">Amount:</label>
-    <input type="number" id="amount" name="amount" required step="0.01">
-    <label for="description">Description:</label>
-    <input type="text" id="description" name="description">
-    <button type="submit">Add Transaction</button>
-</form>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Transaction to Group</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        #transaction-form {
+            max-width: 600px;
+            margin: 20px auto; /* Added margin for spacing */
+            padding: 20px;
+            background-color: #f7f7f7;
+            border-radius: 8px;
+        }
+        .transaction-entry {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .transaction-entry label {
+            flex-basis: 40%;
+            text-align: right;
+            margin-right: 15px;
+        }
+        .transaction-entry input, .transaction-entry select {
+            flex-basis: 60%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button[type="submit"] {
+            background-color: #008cba; /* Example button styling */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Add Transaction to Group</h1>
+    <div id="transaction-form">
+        <form method="POST" action="{{ url_for('add_transaction_to_group') }}">
+            <div class="transaction-entry">
+                <label for="group_id">Select Group:</label>
+                <select id="group_id" name="group_id" required>
+                    {% for group in groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="transaction-entry">
+                <label for="payer_id">Payer (Who paid):</label>
+                <select id="payer_id" name="payer_id" required>
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="transaction-entry">
+                <label for="debtor_id">Debtor (Who owes):</label>
+                <select id="debtor_id" name="debtor_id" required>
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="transaction-entry">
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+            </div>
+            <div class="transaction-entry">
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description">
+            </div>
+            <div class="transaction-entry">
+                <button type="submit">Add Transaction</button>
+            </div>
+        </form>
+    </div>
+</body>
 {% endblock %}

@@ -19,15 +19,21 @@
         <p>You don't belong to any groups.</p>
     {% endif %}
 
-    {% if payment_instructions %}
-        <div class="mt-4">
+<!-- Add this part to settle_group_debts.html -->
+{% if payment_instructions %}
+    <div class="mt-4">
+        {% if group %}
+            <h4>Settlement Instructions for Group {{ group.name }}</h4>
+        {% else %}
             <h4>Settlement Instructions</h4>
-            <ul>
-                {% for instruction in payment_instructions %}
-                    <li>{{ instruction }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+        {% endif %}
+        <ul>
+            {% for instruction in payment_instructions %}
+                <li>{{ instruction }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
 </div>
 {% endblock %}

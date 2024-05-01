@@ -8,49 +8,51 @@
         body {
             font-family: sans-serif;
         }
+        #debt-form {
+            max-width: 600px;
+            margin: auto;
+            padding: 15px;
+            background-color: #f7f7f7;
+            border-radius: 8px;
+        }
         .debt-entry {
-            margin-bottom: 15px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
         }
         .debt-entry label {
-            width: 140px;
-            margin-right: 5px;
-            text-align: left;
+            margin-right: 10px;
+            flex-basis: 40%;
+            text-align: right;
         }
-
         .debt-entry input, .debt-entry select {
-            flex-grow: 1;
+            flex-basis: 60%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
-        
-        button, input[type="submit"] { /* button settings */
-            border-radius: 20px;
-            padding: 8px 15px;
-            border: none;
-            background-color: #3091f9;
-            color: #fff;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
+        .debt-entry button {
+            width: auto;
+            padding: 8px 16px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <br>
-    <h4><b>Enter your transaction here:</b></h4>
-    <br>
-    <form method="POST">
-        <div id="debt-entries">
+    <h1 style="text-align: center;">Input Debts</h1>
+    <div id="debt-form">
+        <form method="POST" action="{{ url_for('input_debts') }}">
             <div class="debt-entry">
                 <label for="item_name">Item(s) purchased:</label>
-                <input type="text" id="item_name" name="item_name" placeholder="e.g. groceries" required>
+                <input type="text" id="item_name" name="item_name" required>
             </div>
             <div class="debt-entry">
                 <label for="amount">Amount owed:</label>
-                <input type="number" id="amount" name="amount" placeholder="e.g. 25"step="0.01" required>
+                <input type="number" id="amount" name="amount" step="0.01" required>
             </div>
-            <br>
             <div class="debt-entry">
-                <label for="debtor">From:</label>
+                <label for="debtor">Debtor (Who owes):</label>
                 <select id="debtor" name="debtor">
                     {% for user in users %}
                     <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
@@ -58,16 +60,17 @@
                 </select>
             </div>
             <div class="debt-entry">
-                <label for="payer">To:</label>
+                <label for="payer">Payer (Who paid):</label>
                 <select id="payer" name="payer">
                     {% for user in users %}
                     <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
                     {% endfor %}
                 </select>
             </div>
-        </div>
-        <br>
-        <button type="submit">Calculate</button>
-    </form>
+            <div style="text-align: center;">
+                <button type="submit">Submit Debt</button>
+            </div>
+        </form>
+    </div>
 </body>
 {% endblock %}

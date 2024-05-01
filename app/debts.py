@@ -136,7 +136,6 @@ def init_debt_routes(app):
 
     # Route to display the list of users and send money
 
-
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
@@ -144,21 +143,21 @@ def init_debt_routes(app):
                 flash('Please log in to input debts.', 'warning')
                 return redirect(url_for('login'))
 
-            item_name = request.form['item_name']
-            user_id = session['user_id']
+            payer_id = int(request.form.get('payer'))
             debtor_id = int(request.form.get('debtor'))
+            item_name = request.form.get('item_name')
             amount = float(request.form.get('amount'))
 
-            payer = User.query.get_or_404(user_id)
+            payer = User.query.get_or_404(payer_id)
             debtor = User.query.get_or_404(debtor_id)
 
             try:
                 debt_item = Transaction(
                     item_name=item_name,
-                    amount=-amount, 
-                    payer_id=payer.id, 
+                    amount=-amount,
+                    payer_id=payer.id,
                     debtor_id=debtor.id)
-                
+
                 db.session.add(debt_item)
                 db.session.commit()
                 flash('Debt recorded successfully.', 'success')
@@ -242,21 +241,42 @@ def init_debt_routes(app):
             abort(500, description="Error accessing the database")
 
         return render_template('list_groups.html', groups=groups, current_user=current_user)
+
     @app.route('/add_transaction_to_group', methods=['GET', 'POST'])
     def add_transaction_to_group():
         if request.method == 'POST':
+            if 'user_id' not in session:
+                flash('Please log in to input debts.', 'warning')
+                return redirect(url_for('login'))
+
             group_id = request.form.get('group_id', type=int)
-            payer_id = session.get('user_id')  # Assuming the payer is the logged-in user
+            payer_id = session.get('user_id')
+            debtor_id = int(request.form.get('debtor_id'))  # Retrieve debtor_id from the form
             amount = request.form.get('amount', type=float)
             description = request.form.get('description', type=str)
 
-            transaction = GroupTransaction(group_id=group_id, payer_id=payer_id, amount=amount, description=description)
+            # Input validation for all fields:
+            if not debtor_id or debtor_id == payer_id:
+                flash('Invalid debtor specified.', 'warning')
+                return redirect(url_for('add_transaction_to_group'))
+            if amount <= 0:
+                flash('Amount must be positive', 'warning')
+                return redirect(url_for('add_transaction_to_group'))
+
+            transaction = GroupTransaction(
+                group_id=group_id,
+                payer_id=payer_id,
+                debtor_id=debtor_id,
+                amount=amount,
+                description=description
+            )
             db.session.add(transaction)
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
+        users = User.query.all()
         groups = Group.query.all()
-        return render_template('add_transaction_to_group.html', groups=groups)
+        return render_template('add_transaction_to_group.html', groups=groups, users=users)
 
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
@@ -336,36 +356,21 @@ def init_debt_routes(app):
 
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
-        groups = Group.query.all()  # Fetch all groups the user belongs to
+        groups = Group.query.all()  # Fetch all groups
+        group = None  # Initialize group variable
+        payment_instructions = []
+
         if request.method == 'POST':
             if 'user_id' not in session:
                 flash('Please log in to Settle Group Debts', 'warning')
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            group = Group.query.get_or_404(group_id)
+            group = Group.query.get_or_404(group_id)  # Fetch the group
             transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+            payment_instructions = resolve_group_debts(group_id)
 
-            _, payment_instructions = resolve_group_debts(transactions)
-            return render_template('settle_group_debts.html', groups=groups, payment_instructions=payment_instructions)
+        return render_template('settle_group_debts.html', groups=groups, group=group,
+                               payment_instructions=payment_instructions)
 
-        return render_template('settle_group_debts.html', groups=groups)
 
-    def has_view_permission(user, group_id):
-        """More advanced permission checking."""
-        user_id = session.get('user_id')
-
-        user_group = UserGroup.query.filter_by(user_id=user_id, group_id=group_id).first()
-
-        # Example checks - customize based on your rules:
-
-        if not user_group:  # User is not a member
-            return False
-
-        if user_group.is_admin:  # Admins have full access
-            return True
-
-        if group.visibility == 'private' and not user_group.is_approved:  # Special conditions for private groups
-            return False
-
-        return True  # Default: Allow access if other checks pass

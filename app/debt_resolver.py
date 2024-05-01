@@ -1,5 +1,5 @@
 from flask import render_template
-from app.models import Transaction, User, db
+from app.models import User, db, GroupTransaction, Transaction
 import heapq
 
 # Comparator that will be used to make priority_queue
@@ -134,43 +134,53 @@ def build_adjacency_matrix_from_transactions(transactions):
 
     return adjacency_matrix, list(persons.keys())
 
-def resolve_group_debts(transactions):
-    # Mapping user IDs to matrix indices
-    user_index = {}
-    current_index = 0
+
+def resolve_group_debts(group_id):
+    # Fetch transactions related to the specified group only
+    transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+
+    # Now, you need to calculate the total amount each member needs to pay or receive.
+    # This is like calculating the net balance for each user.
+
+    net_balances = {}
     for transaction in transactions:
-        if transaction.payer_id not in user_index:
-            user_index[transaction.payer_id] = current_index
-            current_index += 1
-        if transaction.debtor_id not in user_index:
-            user_index[transaction.debtor_id] = current_index
-            current_index += 1
+        # For each transaction, add/subtract the amount to/from the appropriate user's balance
+        net_balances[transaction.debtor_id] = net_balances.get(transaction.debtor_id, 0) - transaction.amount
+        net_balances[transaction.payer_id] = net_balances.get(transaction.payer_id, 0) + transaction.amount
 
-    # Create adjacency matrix for the Ford-Fulkerson algorithm
-    size = len(user_index)
-    graph = [[0] * size for _ in range(size)]
+    # Now, split the balances into payers and receivers
+    payers = [(user_id, balance) for user_id, balance in net_balances.items() if balance > 0]
+    receivers = [(user_id, -balance) for user_id, balance in net_balances.items() if balance < 0]
 
-    for transaction in transactions:
-        payer_idx = user_index[transaction.payer_id]
-        debtor_idx = user_index[transaction.debtor_id]
-        graph[payer_idx][debtor_idx] += transaction.amount
+    # Sort them by the amount to optimize the number of transactions
+    payers.sort(key=lambda x: x[1], reverse=True)
+    receivers.sort(key=lambda x: x[1])
 
-    # Placeholder source and sink - in an actual application, these would be dynamically determined
-    source = 0  # Typically the group admin or an arbitrary point
-    sink = size - 1  # Could be another arbitrary point or calculated based on conditions
-
-    max_flow = ford_fulkerson(graph, source, sink)
-
-    # Convert the flow values back to human-readable transaction instructions
     payment_instructions = []
-    for i in range(size):
-        for j in range(size):
-            if graph[i][j] > 0:
-                payer_id = list(user_index.keys())[list(user_index.values()).index(i)]
-                debtor_id = list(user_index.keys())[list(user_index.values()).index(j)]
-                payment_instructions.append(f"User {payer_id} should pay {graph[i][j]} to User {debtor_id}")
+    i, j = 0, 0
+    # Go through the payers and receivers and settle debts
+    while i < len(payers) and j < len(receivers):
+        payer_id, pay_amount = payers[i]
+        receiver_id, receive_amount = receivers[j]
 
-    return max_flow, payment_instructions
+        # Determine the amount to be settled
+        settled_amount = min(pay_amount, receive_amount)
+        payers[i] = (payer_id, pay_amount - settled_amount)
+        receivers[j] = (receiver_id, receive_amount - settled_amount)
+
+        # Create a payment instruction
+        payer = User.query.get(payer_id)
+        receiver = User.query.get(receiver_id)
+        payment_instructions.append(f"{payer.first_name} pays {settled_amount} euros to {receiver.first_name}")
+
+        # Move to the next payer/receiver if they have nothing left to pay/receive
+        if payers[i][1] == 0:
+            i += 1
+        if receivers[j][1] == 0:
+            j += 1
+
+    return payment_instructions
+
 
 # Function to implement the Ford-Fulkerson method for maximum flow problem
 def ford_fulkerson(graph, source, sink):
