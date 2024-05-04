@@ -10,6 +10,9 @@ from .models import Group, GroupTransaction
 from flask_login import current_user
 from .models.group import UserGroup
 from sqlalchemy.orm import joinedload
+from matplotlib import pyplot as plt
+from .algorithm_complexity import generate_complexity_plots
+
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -136,7 +139,6 @@ def init_debt_routes(app):
             return redirect(url_for('user_profile'))
 
     # Route to display the list of users and send money
-
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
@@ -177,23 +179,20 @@ def init_debt_routes(app):
             if 'user_id' not in session:
                 flash('Please log in to Settle Up Functions', 'warning')
                 return redirect(url_for('login'))
+            plot_file_2d, plot_file_3d = generate_complexity_plots()
 
             try:
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                return render_template('result2.html', payments=payment_instructions)
+                return render_template('result2.html', payments=payment_instructions, plot_file_2d=plot_file_2d,
+                                       plot_file_3d=plot_file_3d)
             except NotFound:
                 flash('No transactions found to settle up.', 'warning')
             except Exception as e:
                 flash(str(e), 'danger')
 
         return render_template('settle_up.html')
-
-    def has_sufficient_funds(user_id, amount):
-        total_credit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.debtor_id == user_id).scalar() or 0
-        total_debit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.payer_id == user_id).scalar() or 0
-        return (total_credit + total_debit) >= amount
 
     @app.route('/create_group', methods=['GET', 'POST'])
     def create_group():
