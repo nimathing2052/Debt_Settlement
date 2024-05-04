@@ -12,9 +12,6 @@
         <ul>
             <li>Total Incoming Payments Due: €{{ monetary_values.total_credit | abs }}</li>
             <li>Total Expenses Owed: €{{ monetary_values.total_debit | abs }}</li>
-            <li style="color: {% if monetary_values.net_balance >= 0 %}green{% else %}red{% endif %}">
-                Net Balance: €{{ monetary_values.net_balance | abs | round(2) }}
-            </li>
             <li>Net Balance: {% if monetary_values.net_balance >= 0 %}<span style="color: green;" €>{{ monetary_values.net_balance }}</span>{% else %}<span style="color: red;"€>{{ monetary_values.net_balance }}</span>{% endif %}</li>
       
         </ul>
@@ -25,19 +22,21 @@
             </form>
         </div>
         <br>
+            </div>
+
         <h2 class="mb-4">A Short History of Your Transactions</h2>
-        <table id="transactionsTable" class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Payer Name</th>
-                    <th>Payee Name</th>
-                    <th>Item Name</th>
-                    <th>Amount (€)</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transaction in transactions %}
+<table id="transactionsTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Payer Name</th>
+                <th>Payee Name</th>
+                <th>Item Name</th>
+                <th>Amount ($)</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
                     <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
@@ -45,11 +44,9 @@
                     <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">€{{ transaction.amount |  abs | round(2) }}</td>
                     <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        </form>
-    </div>
+            {% endfor %}
+        </tbody>
+    </table>
 
 </body>
 
