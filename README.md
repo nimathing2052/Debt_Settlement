@@ -8,7 +8,7 @@ Debt settlement can be a daunting task, but fear not! Our team at Hertie School 
 
 ## Demo 🖥️
 
-You can test the live API [here](https://clear-sky-debt-settlement-2b44b15cca88.herokuapp.com/login)
+You can test the live web application [here.](https://clear-sky-debt-settlement-2b44b15cca88.herokuapp.com/login)
 
 ## Features ⭐
 
