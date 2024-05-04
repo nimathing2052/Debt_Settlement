@@ -11,11 +11,13 @@ def create_app():
     migrate.init_app(app, db, render_as_batch=False)
     # Import route-defining functions directly from files in the 'app' directory
     from .home import init_home_routes
+    from .about import init_about_routes
     from .auth import init_auth_routes
     from .debts import init_debt_routes
 
     # Initialize routes
     init_home_routes(app)
+    init_about_routes(app)
     init_auth_routes(app)
     init_debt_routes(app)
 
