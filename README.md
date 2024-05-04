@@ -65,6 +65,11 @@ You can test the live web application [here.](https://clear-sky-debt-settlement-
 ## Time and Space Complexity of the Application
 
 
+## How to Use ClearSkies
+
+1. Clone this repository to your local machine.
+2. Explore the data and documentation to gain insights into debt settlement strategies.
+3. Implement the algorithms and methodologies in your own projects to tackle debt with confidence.
 
 ## List of Contributors
 - Varvara Ilyina
