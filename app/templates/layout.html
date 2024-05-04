@@ -76,6 +76,14 @@
             text-align: left;
             border-top: 1px solid #e7e7e7;
         }
+        .footer-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -148,8 +156,11 @@
         {% block content %}{% endblock %}
     </main>
     <footer class="footer bg-light fixed-bottom">
-        <div class="container">
-            <span class="text-muted">&copy; 2024 ClearSkies</span>
+        <div class="container" style="text-align: center;">
+            <span class="text-muted footer-links">
+                <a href="/about">About</a> | <a href="/home">Home</a> | <a href="https://github.com/nimathing2052/Debt_Settlement">GitHub</a>
+            </span>
+            <span class="text-muted" style="font-size: 14px; float: right;">&copy; 2024 ClearSkies</span>
         </div>
     </footer>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
