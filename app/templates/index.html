@@ -26,9 +26,6 @@
         margin-bottom: 15px;
         padding-left: 30px;
     }
-    .content {
-        padding-bottom: 60px; /* make sure content does not overlap with footer */
-    }
 </style>
 <div class="container">
     <h3>Welcome to <b>ClearSkies</b>, {{ session.first_name }}!</h3>
@@ -61,13 +58,5 @@
             </div>
         </form>
     </div>
-</div>
-<br>
-<div class="content">
-    <!-- Content here -->
-    <h5>Here's how it works:</h5>
-    <p>Our goal is to offer you a simplified experience of solving any financial troubles you might have.<br>With the help of <b>ClearSkies</b>, you can easily keep track of your finances!<br>Whether you're looking to add a new debt, settle up with a friend, or simply check your financial overview, we've got you covered!</p>
-    <br>
-    <p>Click on "new entry", enter your transaction details, and we'll take care of the rest. It's that easy.<br>To settle up your debts (by group or in general), just click on "settle up"!<br>Click on the dashboard button to receive an overview of your finances.</p>
 </div>
 {% endblock %}

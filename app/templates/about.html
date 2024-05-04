@@ -10,6 +10,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            padding-bottom: 50px;
         }
         .container {
             max-width: 800px;
@@ -28,5 +29,86 @@
             text-align: left;
             border-top: 1px solid #e7e7e7;
         }
+        .content {
+            padding-bottom: 60px; /* make sure content does not overlap with footer */
+        }
+                .collapsible {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .collapsible p {
+            display: none;
+            padding: 5px;
+        }
+        .collapsible ul.hidden {
+            display: none; /* Hide the list by default */
+        }
+        .collapsible.active p {
+            display: block;
+        }
     </style>
+</head>
+<body>
+    <br>
+    <h3><b>Need help?</b></h3>
+    <h5>Click on the buttons below to access information about the following topics:</h5>
+    <br>
+    <br>
+    <div class="content">
+        <!-- Content here -->
+        <h5><i>About ClearSkies</i></h5>
+        <div class="collapsible">
+            <p><i>ClearSkies</i> is dedicated to simplifying your financial management experience.</p>
+        </div>
+        <br>
+        <h5><i>How it Works</i></h5>
+        <div class="collapsible">
+            <p>Our goal is to offer you a simplified experience of solving any financial troubles you might have.</p>
+            <p>With the help of <i>ClearSkies</i>, you can easily keep track of your finances! Whether you're looking to add a new debt, settle up with a friend, or simply check your financial overview, we've got you covered!</p>
+            <p>Follow the steps below and we'll take care of the rest:</p>
+            <ul class="hidden">
+                <li>Log in or register a new account.</li>
+                <li>In the "finances" menu, click on "new entry" to add a new transaction.</li>
+                <li>Enter your transaction details.</li>
+                <li>Click on "settle up" to settle your debts.</li>
+                <li>Click on the dashboard buttons to access your financial overview.</li>
+            </ul>
+        </div>
+        <br>
+        <h5><i>Contact Us</i></h5>
+        <div class="collapsible">
+            <p>Still have questions or concerns?</p>
+            <p>For any inquiries or assistance, please contact our support team at clearskies@email.com</p>
+        </div>
+    </div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+
+                // Toggle visibility of the ul element (bulleted list)
+                var list = this.querySelector("ul");
+                if (list.classList.contains("hidden")) {
+                    list.classList.remove("hidden");
+                } else {
+                    list.classList.add("hidden");
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
