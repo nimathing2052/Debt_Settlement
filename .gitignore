@@ -3,4 +3,4 @@
 .venv/
 venv/
 Debt_Settlement/
-instance/
+app/__pycache__/
