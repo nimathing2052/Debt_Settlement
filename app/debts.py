@@ -374,7 +374,6 @@ def init_debt_routes(app):
             flash('Member not found', 'error')
         return redirect(url_for('view_group', group_id=group_id))
 
-
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
         page = request.args.get('page', 1, type=int)
@@ -401,8 +400,8 @@ def init_debt_routes(app):
             func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
             func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
         ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
-        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
-        .paginate(page=page, per_page=per_page, error_out=False)
+            .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+            .paginate(page=page, per_page=per_page, error_out=False)
 
         if request.method == 'POST':
             if 'user_id' not in session:
@@ -410,7 +409,8 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            selected_group = Group.query.get_or_404(group_id)  
+            selected_group = Group.query.get_or_404(group_id)
             payment_instructions = resolve_group_debts(group_id)
 
-        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions,scrolled_to_instructions=True)
+        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group,
+                               payment_instructions=payment_instructions, scrolled_to_instructions=True)
