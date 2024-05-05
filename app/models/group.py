@@ -20,7 +20,7 @@ class GroupTransaction(db.Model):
     debtor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # This assumes you have added debtor_id as per earlier discussion
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow())
 
 class UserGroup(db.Model):
     __tablename__ = 'user_groups'

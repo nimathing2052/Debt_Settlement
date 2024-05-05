@@ -32,54 +32,23 @@ def init_debt_routes(app):
             (Transaction.payer_id == current_user.id) | (Transaction.debtor_id == current_user.id)
         ).all()
         return render_template('result.html', transactions=transactions)
-    @app.route('/dashboard')
-    def dashboard():
+
+    @app.route('/dashboard', defaults={'group_id': None})
+    @app.route('/dashboard/<int:group_id>')
+    def dashboard(group_id):
         if 'user_id' not in session:
             flash('Please log in to view the dashboard.', 'warning')
             return redirect(url_for('login'))
-        
-        # Subquery for total credits per user
-        credit_subquery = db.session.query(
-            Transaction.payer_id.label('user_id'),
-            func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
-        ).group_by(Transaction.payer_id).subquery()
 
-        # Subquery for total debts per user
-        debt_subquery = db.session.query(
-            Transaction.debtor_id.label('user_id'),
-            func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
-        ).group_by(Transaction.debtor_id).subquery()
+        group = None
+        if group_id:
+            group = Group.query.get_or_404(group_id)
+            transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+        else:
+            transactions = Transaction.query.all()
 
-        # Main query to calculate net balances, total credits, and total debts
-        net_balances = db.session.query(
-            User.first_name, User.last_name,
-            func.coalesce(credit_subquery.c.total_credit, 0).label('total_incomings'),
-            func.coalesce(debt_subquery.c.total_debt, 0).label('total_outgoings'),
-            (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label('net_balance')
-        ).outerjoin(credit_subquery, User.id == credit_subquery.c.user_id) \
-        .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
-        .group_by(User.first_name, User.last_name) \
-        .all()
-
-        # Define aliases for User model
-        Payer = aliased(User, name='payer')
-        Debtor = aliased(User, name='debtor')
-
-
-        # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
-        transactions = db.session.query(
-            Transaction.item_name,
-            Payer.first_name.label('payer_first_name'),
-            Payer.last_name.label('payer_last_name'),
-            Debtor.first_name.label('debtor_first_name'),
-            Debtor.last_name.label('debtor_last_name'),
-            Transaction.amount,
-            Transaction.time_date
-        ).join(Payer, Payer.id == Transaction.payer_id) \
-        .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
-
-        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
-
+        # Build the data for displaying in the dashboard here, either for the specific group or globally.
+        return render_template('dashboard.html', group=group, transactions=transactions)
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
     def update_monetary_value():
@@ -282,12 +251,28 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-        # Ensure to join with the User model to fetch payer details
-        transactions = GroupTransaction.query.filter_by(group_id=group_id) \
-            .options(joinedload(
-            GroupTransaction.payer)).all()  # Assuming 'payer' is a relationship defined in GroupTransaction model
+
+        # Define aliases for User model as done in the dashboard function
+        Payer = aliased(User, name='payer')
+        Debtor = aliased(User, name='debtor')
+
+        # Adjusting the query to fetch all transactions with payer and debtor details
+        transactions = db.session.query(
+            GroupTransaction.id,
+            GroupTransaction.description,
+            GroupTransaction.amount,
+            GroupTransaction.created_at,
+            Payer.first_name.label('payer_first_name'),
+            Payer.last_name.label('payer_last_name'),
+            Debtor.first_name.label('debtor_first_name'),
+            Debtor.last_name.label('debtor_last_name')
+        ).join(Payer, Payer.id == GroupTransaction.payer_id) \
+            .join(Debtor, Debtor.id == GroupTransaction.debtor_id) \
+            .filter(GroupTransaction.group_id == group_id) \
+            .all()
 
         return render_template('view_group.html', group=group, transactions=transactions)
+
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')

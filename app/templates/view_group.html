@@ -1,31 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layout.html" %}
+{% block content %}
 <head>
-    </head>
+    <title>Group Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {background-color: #f5f5f5;}
+        .header {
+            padding: 10px;
+            font-size: 24px;
+            color: white;
+            background-color: #007bff;
+            text-align: center;
+        }
+        .sub-header {
+            padding: 5px;
+            font-size: 20px;
+            color: #333;
+            background-color: #f9f9f9;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+        }
+    </style>
+</head>
 <body>
-    <h2>Group Transactions</h2>
-    {% if transactions %}
+    <div class="header">
+        Group Dashboard: {{ group.name }}
+    </div>
+
+    <div class="container">
+        <div class="sub-header">
+            Transactions Overview
+        </div>
+        {% if transactions %}
         <table>
             <thead>
                 <tr>
                     <th>Payer</th>
-                    <th>Description</th>
-                    <th>Amount</th>
+                    <th>Payee</th>
+                    <th>Item Name</th>
+                    <th>Amount ($)</th>
+                    <th>Date</th>
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions %}
-                    <tr>
-<td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
-        <td>{{ transaction.description }}</td>
-        <td>{{ transaction.amount }}</td>
-                    </tr>
+                <tr>
+                    <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
+                    <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>${{ transaction.amount }}</td>
+                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
-    {% else %}
+        {% else %}
         <p>No transactions yet.</p>
-    {% endif %}
-
-    </body>
-</html>
+        {% endif %}
+    </div>
+</body>
+{% endblock %}

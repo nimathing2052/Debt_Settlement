@@ -2,67 +2,31 @@
 {% block content %}
 <head>
     <title>Dashboard</title>
-    <style>
-        .collapsible {
-            background-color: #f1f1f1;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .collapsible p {
-            display: none;
-            padding: 5px;
-        }
-        .collapsible ul.hidden {
-            display: none; /* Hide the list by default */
-        }
-        .collapsible.active p {
-            display: block;
-        }
-    </style>
 </head>
 <body>
     <br>
     <h3>ClearSkies Overview: Your Financial Dashboard</h3>
+
+    <!-- Group Selection Dropdown -->
     <div class="container mt-5">
-        <h5 class="mb-3"> Net Balances of All Users on the App</h5>
+        <form action="{{ url_for('dashboard') }}" method="get">
+            <div class="form-group">
+                <label for="groupSelect">Select a Group:</label>
+                <select class="form-control" id="groupSelect" name="group_id" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    {% for group in all_groups %}
+                        <option value="{{ group.id }}" {% if group.id == group_id %}selected{% endif %}>{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Display Data -->
+    <div class="container mt-3">
+        <h5 class="mb-3">Transactions</h5>
         <table class="table table-striped">
             <thead class="thead-dark">
-                <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Total Incomings ($)</th>
-                    <th>Total Outgoings ($)</th>
-                    <th>Net Balance ($)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in net_balances %}
-                <tr>
-                    <td>{{ user.first_name }}</td>
-                    <td>{{ user.last_name }}</td>
-                    <td>${{ user.total_incomings | round(2) }}</td>
-                    <td>${{ user.total_outgoings | round(2) }}</td>
-                    <td style="color: {{ 'green' if user.net_balance >= 0 else 'red' }}">${{ user.net_balance | round(2) }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5">No data available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div class="container mt-3">
-        <button type="submit" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
-    </div>
-    <br>
-    <hr>
-    <div class="container mt-5">
-        <h5 class="mb-4">A Short History of All Transactions on the App</h5>
-        <table id="transactionsTable" class="table table-striped">
-            <thead>
                 <tr>
                     <th>Payer Name</th>
                     <th>Payee Name</th>
@@ -74,52 +38,19 @@
             <tbody>
                 {% for transaction in transactions %}
                 <tr>
-                    <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
-                    <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
+                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+                    <td>{{ transaction.debtor.first_name }} {{ transaction.debtor_last_name }}</td>
                     <td>{{ transaction.item_name }}</td>
-                    <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount |  abs | round(2) }}</td>
+                    <td>${{ transaction.amount | abs | round(2) }}</td>
                     <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">No transactions to display.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <br>
-    <br>
 </body>
-<footer class="footer bg-light fixed-bottom">
-    <div class="container" style="text-align: center;">
-        <span class="text-muted footer-links">
-            <a href="/about">About</a> | <a href="/home">Home</a> | <a href="https://github.com/nimathing2052/Debt_Settlement">GitHub</a>
-        </span>
-        <span class="text-muted" style="font-size: 14px; float: right;">&copy; 2024 ClearSkies</span>
-    </div>
-</footer>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-<script>
-    $(document).ready(function() {
-        var table = $('#transactionsTable').DataTable({
-            "order": [[4, "desc"]], // Default ordering by date, descending
-            "initComplete": function () {
-                this.api().columns().every(function () {
-                    var column = this;
-                    var input = $('<input type="text" placeholder="Search '+column.header().textContent+'" />')
-                        .appendTo($(column.footer()).empty())
-                        .on('change', function () {
-                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                            column.search(val ? val : '', true, false).draw();
-                        });
-
-                    input.on('click', function(e) {
-                        e.stopPropagation();
-                    });
-                });
-            }
-        });
-    });
-</script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
-</html>
-
 {% endblock %}
