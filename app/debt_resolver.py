@@ -152,8 +152,8 @@ def resolve_group_debts(group_id):
     # Fetch transactions related to the specified group only
     transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
 
-    # Now, you need to calculate the total amount each member needs to pay or receive.
-    # This is like calculating the net balance for each user.
+    # to calculate the total amount each member needs to pay or receive
+    # calculating the net balance for each user
 
     net_balances = {}
     for transaction in transactions:
@@ -161,22 +161,22 @@ def resolve_group_debts(group_id):
         net_balances[transaction.debtor_id] = net_balances.get(transaction.debtor_id, 0) - transaction.amount
         net_balances[transaction.payer_id] = net_balances.get(transaction.payer_id, 0) + transaction.amount
 
-    # Now, split the balances into payers and receivers
+    # split the balances into payers and receivers
     payers = [(user_id, balance) for user_id, balance in net_balances.items() if balance > 0]
     receivers = [(user_id, -balance) for user_id, balance in net_balances.items() if balance < 0]
 
-    # Sort them by the amount to optimize the number of transactions
+    # Sort by amount to optimize the number of transactions
     payers.sort(key=lambda x: x[1], reverse=True)
     receivers.sort(key=lambda x: x[1])
 
     payment_instructions = []
     i, j = 0, 0
-    # Go through the payers and receivers and settle debts
+    # go through the payers and receivers and settle debts
     while i < len(payers) and j < len(receivers):
         payer_id, pay_amount = payers[i]
         receiver_id, receive_amount = receivers[j]
 
-        # Determine the amount to be settled
+        # Determine amount to be settled
         settled_amount = min(pay_amount, receive_amount)
         payers[i] = (payer_id, pay_amount - settled_amount)
         receivers[j] = (receiver_id, receive_amount - settled_amount)
