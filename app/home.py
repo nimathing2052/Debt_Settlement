@@ -9,6 +9,8 @@ def init_home_routes(app):
             if request.method == 'POST':
                 item_name = request.form.get('item_name')
                 amount = request.form.get('amount')
+                group_id = request.form.get('group_id', type=int)
+
 
                 if item_name is not None and amount is not None:
                     try:
@@ -20,6 +22,6 @@ def init_home_routes(app):
                     flash('Missing item name or amount.', 'warning')
 
             user_name = session.get('user_name', 'Guest') 
-            return render_template('index.html', user_name=user_name)
+            return render_template('index.html', user_name=user_name, group_id=group_id)
         else:
             return redirect(url_for('login'))
