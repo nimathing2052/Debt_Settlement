@@ -17,22 +17,33 @@
             justify-content: flex-end;
             align-items: center;
             margin-bottom: 10px;
+            flex-direction: column;
         }
         .group-entry label {
-            margin-right: 10px;
-            flex-basis: 40%;
-            text-align: right;
+            margin-bottom: 5px;
+            flex-basis: 100%;
+            text-align: center;
         }
         .group-entry input[type="text"], .group-entry select {
-            flex-basis: 60%;
+            flex-basis: 100%;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            width: 90%; /* Adjust width to fit within form area */
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .member-item label {
+            margin-left: 10px; /* Space between checkbox and label */
         }
         .group-entry button {
             width: auto;
             padding: 8px 16px;
-            margin-top: 10px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -48,20 +59,16 @@
             <div class="group-entry">
                 <label>Select Members:</label>
                 {% for user in all_users %}
-                <div>
+                <div class="member-item">
                     <input type="checkbox" id="member_{{ user.id }}" name="members[]" value="{{ user.id }}">
                     <label for="member_{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</label>
                 </div>
-                {% if not loop.last %}
-                <br>
-                {% endif %}
                 {% endfor %}
             </div>
             <div style="text-align: center;">
-                <button type="submit">Create Group</button>
+                <button type="submit">Create Group!</button>
             </div>
         </form>
     </div>
 </body>
 {% endblock %}
-

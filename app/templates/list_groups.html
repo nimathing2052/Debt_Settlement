@@ -25,11 +25,17 @@
     tr:hover {
         background-color: #f1f1f1;
     }
-    .btn-success {
+    .btn-success, .btn-primary {
         color: white;
+        cursor: pointer;
+    }
+    .btn-success {
         background-color: #28a745;
         border-color: #28a745;
-        cursor: pointer;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
     }
     .btn-sm {
         padding: 5px 10px;
@@ -39,16 +45,17 @@
 
 <div class="container mt-3">
     <h3>Select Group for Debt Settlement</h3>
-    {% if groups %}
+    {% if groups.items %}
         <table>
             <thead>
                 <tr>
                     <th>Group Name</th>
                     <th>Actions</th>
+                    <th>View</th>
                 </tr>
             </thead>
             <tbody>
-                {% for group in groups %}
+                {% for group in groups.items %}
                 <tr>
                     <td>{{ group.name }}</td>
                     <td>
@@ -57,29 +64,15 @@
                             <button type="submit" class="btn btn-sm btn-success">Settle</button>
                         </form>
                     </td>
+                    <td>
+                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-primary">View</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
         <p>You don't belong to any groups.</p>
-    {% endif %}
-
-    {% if payment_instructions %}
-    <div class="mt-4">
-        {% if group %}
-            <h4>Settlement Instructions for Group {{ group.name }}</h4>
-        {% else %}
-            <h4>Settlement Instructions</h4>
-        {% endif %}
-        <table>
-            <tbody>
-                {% for instruction in payment_instructions %}
-                <tr><td>{{ instruction }}</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
     {% endif %}
 </div>
 {% endblock %}

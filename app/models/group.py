@@ -8,7 +8,7 @@ class Group(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     users = db.relationship('UserGroup', back_populates='group', lazy='dynamic')
 
-    # Relationship with group transactions
+    # relationship with group transactions
     transactions = db.relationship('GroupTransaction', backref='group', lazy='dynamic')
 
 class GroupTransaction(db.Model):

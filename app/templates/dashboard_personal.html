@@ -44,6 +44,29 @@
     </div>
     <br>
     <hr>
+
+    <h5 class="mb-4">Your Groups</h5>
+    
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Group Name</th>
+                <th>Date Created</th>
+                <th>Members</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in user_groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ len(group.users) }} Members</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
     <br>
     <h5 class="mb-4">A Short History of Your Transactions</h5>
     <table id="transactionsTable" class="table table-striped">

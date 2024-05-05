@@ -232,10 +232,10 @@ def init_debt_routes(app):
         try:
             groups = Group.query.paginate(page=page, per_page=per_page, error_out=False)
         except Exception as e:
-            print(f"Database error: {e}")
+            flash(f"Database error: {e}", 'error')
             abort(500, description="Error accessing the database")
 
-        return render_template('list_groups.html', groups=groups, current_user=current_user)
+        return render_template('list_groups.html', groups=groups)
 
     @app.route('/add_transaction_to_group', methods=['GET', 'POST'])
     def add_transaction_to_group():
@@ -277,11 +277,9 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-        # Ensure to join with the User model to fetch payer details
         transactions = GroupTransaction.query.filter_by(group_id=group_id) \
             .options(joinedload(
-            GroupTransaction.payer)).all()  # Assuming 'payer' is a relationship defined in GroupTransaction model
-
+            GroupTransaction.payer)).all()  
         return render_template('view_group.html', group=group, transactions=transactions)
     
     @app.route('/dashboard_personal')
