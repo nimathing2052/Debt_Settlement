@@ -5,7 +5,7 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2 class="mb-3"> Net Balances of All Users on the App</h2>
+        <h5 class="mb-3"> Net Balances of All Users on the App</h5>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
@@ -36,10 +36,12 @@
 
     <br>
     <div class="container mt-3">
-        <button type="button" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
+        <button type="submit" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
     </div>
-
-    <h2 class="mb-4">A Short History of All Transactions on the App!</h2>
+    <br>
+    <hr>
+    <br>
+    <h5 class="mb-4">A Short History of All Transactions on the App!</h5>
     <table id="transactionsTable" class="table table-striped">
         <thead>
             <tr>

@@ -2,6 +2,9 @@
 
 {% block content %}
 <style>
+    body {
+        font-family: sans-serif;
+    }
     .contained {
         display: flex; /* Enables flexbox layout */
         flex-wrap: wrap; /* Allows items to wrap as needed */
@@ -37,10 +40,10 @@
             <form method="POST">
                 <div id="debt-entries">
                     <div class="debt-entry">
-                        <button type="button" onclick="location.href='{{ url_for('input_debts') }}';">New entry</button>
+                        <button type="submit" onclick="location.href='{{ url_for('input_debts') }}';">New entry</button>
                     </div>
                     <div class="debt-entry">
-                        <button type="button" onclick="location.href='{{ url_for('create_group') }}';">New group</button>
+                        <button type="submit" onclick="location.href='{{ url_for('create_group') }}';">New group</button>
                     </div>
                 </div>
             </form>
@@ -50,7 +53,7 @@
         <form method="GET" action="{{ url_for('dashboard_personal') }}">
             <div id="debt-entries">
                 <div class="debt-entry">
-                    <button type="button" onclick="location.href='{{ url_for('settle_up') }}';">Settle up</button>
+                    <button type="submit" onclick="location.href='{{ url_for('settle_up') }}';">Settle up</button>
                 </div>
                 <div class="debt-entry">
                     <button type="submit">My dashboard</button>

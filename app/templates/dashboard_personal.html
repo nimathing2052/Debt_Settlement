@@ -6,9 +6,10 @@
     <title>Your Personal Dashboard</title>
 </head>
 <body>
-    <h1>Your Personal Finances Overview</h1>
+    <br>
+    <h3>Your Personal Finances Overview</h3>
     <div>
-        <h2>Your Net Debts</h2>
+        <h5>Your Net Debts</h5>
         <ul>
             <li>Total Incoming Payments Due: €{{ monetary_values.total_credit | abs }}</li>
             <li>Total Expenses Owed: €{{ monetary_values.total_debit | abs }}</li>
@@ -16,26 +17,26 @@
                 Net Balance: €{{ monetary_values.net_balance | abs | round(2) }}
             </li>
         </ul>
-
         <div class="container mt-3">
             <form action="{{ url_for('settle_up') }}" method="post">
                 <button type="submit" class="btn btn-success">Settle Up Your Debts!</button>
             </form>
         </div>
-        <br>
-            </div>
-
-        <h2 class="mb-4">A Short History of Your Transactions</h2>
-<table id="transactionsTable" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Payer Name</th>
-                <th>Payee Name</th>
-                <th>Item Name</th>
-                <th>Amount ($)</th>
-                <th>Date</th>
-            </tr>
-        </thead>
+    </div>
+    <br>
+    <hr>
+    <br>
+        <h5 class="mb-4">A Short History of Your Transactions</h5>
+            <table id="transactionsTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Payer Name</th>
+                    <th>Payee Name</th>
+                    <th>Item Name</th>
+                    <th>Amount ($)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
         <tbody>
             {% for transaction in transactions %}
                 <tr>
