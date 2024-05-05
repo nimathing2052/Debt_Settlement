@@ -62,7 +62,7 @@ You can test the live web application [here.](https://clear-sky-debt-settlement-
 └── run.py
 ```
 
-## Time and Space Complexity of the Application
+## Time ⏳ and Space 🌌 Complexity of the Application 
 
 **1. Problem Setup:** In the context of our application, suppose we have a group of users who have engaged in financial transactions, where some owe money to others. The goal is to settle these debts to minimise the total number of transactions, making the process efficient and straightforward.
 
@@ -74,23 +74,23 @@ You can test the live web application [here.](https://clear-sky-debt-settlement-
 
 **4. Algorithm Complexity:**
 
-Time Complexity: $O(nlogn)$
+Time Complexity: $O(nlogn)$ ⏳
 - Constructing Queues: $O(n log n)$. This complexity arises as each individual is potentially inserted into the heap (either minQ or maxQ based on whether they are a net debtor or creditor).
 - Solving Transactions: $O(n log n)$. Each transaction involves removing the top from a heap (either minQ or maxQ), which takes $O(n log n)$ per operation, and potentially this occurs for nearly all individuals.
 
-Space Complexity: $O(n)$
+Space Complexity: $O(n)$ 🌌
 - Queues: $O(n)$. The space is required to hold all individuals across the two priority queues.
 - Amount Array: $O(n)$. This array is used to calculate the net balance for each individual, which is essential for determining who owes and who is owed.
 
 ![Time and Space Complexity of the Algorithm](algo_complexity.png)
 
-## How to Use ClearSkies
+## How to Use ClearSkies ☁️
 
 1. Clone this repository to your local machine.
 2. Explore the data and documentation to gain insights into debt settlement strategies.
 3. Implement the algorithms and methodologies in your own projects to tackle debt with confidence.
 
-## List of Contributors
+## List of Contributors 👥
 - Varvara Ilyina
 - Ray Hossain
 - Nima Thing
