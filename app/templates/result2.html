@@ -3,7 +3,6 @@
 {% block content %}
 <div class="container mt-5">
     <h2>Payment Instructions</h2>
-    <!-- Display payment instructions if they exist -->
     {% if payments %}
         <ul class="list-group">
             {% for payment in payments %}
@@ -15,28 +14,5 @@
             No payments are necessary or an error occurred. Please verify transaction records or contact support.
         </div>
     {% endif %}
-
-    <h2 class="mt-5">Algorithm Complexity Visualizations</h2>
-    <p class="text-muted">
-        Below are the visualizations illustrating the time and space complexity of the debt settlement algorithm used to process these transactions. Understanding these complexities can help appreciate the efficiency and performance characteristics of the algorithm.
-    </p>
-    <div class="row">
-        <div class="col-md-6">
-            <h3>2D Complexity Plot</h3>
-            {% if plot_file_2d %}
-                <img src="{{ url_for('static', filename=plot_file_2d) }}" alt="2D Complexity Plot" class="img-fluid">
-            {% else %}
-                <p class="text-secondary">2D complexity plot is currently unavailable.</p>
-            {% endif %}
-        </div>
-        <div class="col-md-6">
-            <h3>3D Complexity Plot</h3>
-            {% if plot_file_3d %}
-                <img src="{{ url_for('static', filename=plot_file_3d) }}" alt="3D Complexity Plot" class="img-fluid">
-            {% else %}
-                <p class="text-secondary">3D complexity plot is currently unavailable.</p>
-            {% endif %}
-        </div>
-    </div>
 </div>
 {% endblock %}

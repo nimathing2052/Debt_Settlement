@@ -175,17 +175,20 @@ def init_debt_routes(app):
 
         if request.method == 'POST':
             try:
+                # Assuming this function returns an adjacency matrix and a list of persons
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
+                # Assuming this function returns payment instructions as a list of strings
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                if payment_instructions:
-                    return render_template('result2.html', payments=payment_instructions)
-                else:
+                if not payment_instructions:
                     flash('No transactions found to settle up.', 'warning')
-                    return render_template('settle_up.html')
+                    return redirect(url_for('settle_up'))
+                return render_template('result2.html', payments=payment_instructions)
             except Exception as e:
-                flash(str(e), 'danger')
-                return render_template('settle_up.html')
+                error_message = str(e)
+                app.logger.error(f"Error during settlement: {error_message}")  # Log error
+                flash(f"An error occurred: {error_message}", 'danger')  # Show error in flash message
+                return redirect(url_for('settle_up'))
 
         return render_template('settle_up.html')
 
