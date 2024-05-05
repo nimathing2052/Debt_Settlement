@@ -3,20 +3,20 @@
 {% block content %}
 <style>
     .contained {
-        display: flex; /* Enables flexbox layout */
-        flex-wrap: wrap; /* Allows items to wrap as needed */
-        justify-content: space-around; /* Distributes space between and around content items */
-        align-items: flex-start; /* Aligns items at the start of the flex container */
-        margin: 10px 0; /* Adds vertical space before and after the container */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: flex-start;
+        margin: 10px 0;
     }
     .section {
-        flex: 1; /* Allows each section to grow and fill the space */
-        min-width: 200px; /* Minimum width for each section to prevent them from getting too small */
-        max-width: 400px; /* Maximum width to maintain consistency */
+        flex: 1;
+        min-width: 200px;
+        max-width: 400px;
         border: 1px solid #ccc;
         padding: 20px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin: 10px; /* Adjusts space around each section */
+        margin: 10px;
     }
     .container {
         width: 100%;
@@ -26,7 +26,23 @@
         margin-bottom: 15px;
         padding-left: 30px;
     }
+    .btn-link {
+        display: inline-block;
+        background-color: #3091f9;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        border-radius: 20px;
+        text-decoration: none;
+        border: none; /* Added to remove any default border */
+        transition: background-color 0.3s, color 0.3s; /* Smooth transition for background and text color */
+    }
+    .btn-link:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        color: #FFD700; /* Gold color for text to ensure visibility */
+    }
 </style>
+
 <div class="container">
     <h3>Welcome to <b>ClearSkies</b>, {{ session.first_name }}!</h3>
     <h5>Together, let's eliminate financial clouds and welcome clear skies ahead!</h5>
@@ -34,29 +50,22 @@
     <div class="contained">
         <div class="section">
             <p>Do you have a new transaction?</p>
-            <form method="POST">
-                <div id="debt-entries">
-                    <div class="debt-entry">
-                        <button type="submit" onclick="location.href='{{ url_for('input_debts') }}';">New entry</button>
-                    </div>
-                    <div class="debt-entry">
-                        <button type="submit" onclick="location.href='{{ url_for('create_group') }}';">New group</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    <div class="section">
-        <p>Let's settle some debts!</p>
-        <form method="GET" action="{{ url_for('dashboard_personal') }}">
-            <div id="debt-entries">
-                <div class="debt-entry">
-                    <button type="submit" onclick="location.href='{{ url_for('settle_up') }}';">Settle up</button>
-                </div>
-                <div class="debt-entry">
-                    <button type="submit">My dashboard</button>
-                </div>
+            <div class="debt-entry">
+                <a href="{{ url_for('add_transaction_to_group') }}" class="btn-link">New entry</a>
             </div>
-        </form>
+            <div class="debt-entry">
+                <a href="{{ url_for('create_group') }}" class="btn-link">New group</a>
+            </div>
+        </div>
+        <div class="section">
+            <p>Let's settle some debts!</p>
+            <div class="debt-entry">
+                <a href="{{ url_for('settle_up') }}" class="btn-link">Settle up</a>
+            </div>
+            <div class="debt-entry">
+                <a href="{{ url_for('dashboard_personal') }}" class="btn-link">My dashboard</a>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
