@@ -101,7 +101,7 @@
                 <th>Payer Name</th>
                 <th>Payee Name</th>
                 <th>Item Name</th>
-                <th>Amount ($)</th>
+                <th>Amount</th>
                 <th>Date</th>
             </tr>
         </thead>
@@ -111,7 +111,7 @@
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
                     <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
                     <td>{{ transaction.item_name }}</td>
-                    <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">€{{ transaction.amount |  abs | round(2) }}</td>
+                    <td> €{{ transaction.amount |  abs | round(2) }}</td>
                     <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
                 </tr>
             {% endfor %}
@@ -130,7 +130,7 @@
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
-        var table = $('#transactionsTable').DataTable({
+        var table = ('#transactionsTable').DataTable({
             "order": [[4, "desc"]], // Default ordering by date, descending
             "initComplete": function () {
                 this.api().columns().every(function () {
