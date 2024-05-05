@@ -11,7 +11,7 @@
         }
         #transaction-form {
             max-width: 600px;
-            margin: 20px auto; /* Added margin for spacing */
+            margin: 20px auto;
             padding: 20px;
             background-color: #f7f7f7;
             border-radius: 8px;
@@ -32,20 +32,23 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        button[type="submit"] {
-            background-color: #008cba; /* Example button styling */
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Add Transaction to Group</h1>
+    <br>
+    <h3 style="text-align: center;">Add a Group Transaction</h3>
     <div id="transaction-form">
         <form method="POST" action="{{ url_for('add_transaction_to_group') }}">
+
+            <div class="transaction-entry">
+                <label for="item_name">Item(s) purchased:</label>
+                <input type="text" id="item_name" name="item_name" required>
+            </div>
+            <div class="transaction-entry">
+                <label for="amount">Amount owed:</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+            </div>
+            <br>
             <div class="transaction-entry">
                 <label for="group_id">Select Group:</label>
                 <select id="group_id" name="group_id" required>
@@ -70,16 +73,9 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="transaction-entry">
-                <label for="amount">Amount:</label>
-                <input type="number" id="amount" name="amount" step="0.01" required>
-            </div>
-            <div class="transaction-entry">
-                <label for="description">Description:</label>
-                <input type="text" id="description" name="description">
-            </div>
-            <div class="transaction-entry">
-                <button type="submit">Add Transaction</button>
+            <br>
+            <div style="text-align: center;">
+                <button type="submit">Submit</button>
             </div>
         </form>
     </div>

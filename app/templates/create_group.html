@@ -1,20 +1,70 @@
-{% extends "layout.html" %}
-
+{% extends 'layout.html' %}
 {% block content %}
-<form method="POST">
-    <label for="group_name">Group Name:</label>
-    <input type="text" id="group_name" name="group_name" required>
-
-    <fieldset>
-        <legend>Select Members:</legend>
-        {% for user in all_users %}
-        <div>
-            <input type="checkbox" id="member_{{ user.id }}" name="members[]" value="{{ user.id }}">
-            <label for="member_{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</label>
-        </div>
-        {% endfor %}
-    </fieldset>
-
-    <button type="submit">Create Group</button>
-</form>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Group</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        #group-form {
+            max-width: 600px;
+            margin: auto;
+            padding: 15px;
+            background-color: #f7f7f7;
+            border-radius: 8px;
+        }
+        .group-entry {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .group-entry label {
+            margin-right: 10px;
+            flex-basis: 40%;
+            text-align: right;
+        }
+        .group-entry input[type="text"], .group-entry select {
+            flex-basis: 60%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .group-entry button {
+            width: auto;
+            padding: 8px 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <h3 style="text-align: center;">Create a New Group</h3>
+    <div id="group-form">
+        <form method="POST" action="{{ url_for('create_group') }}">
+            <div class="group-entry">
+                <label for="group_name">Group Name:</label>
+                <input type="text" id="group_name" name="group_name" required>
+            </div>
+            <div class="group-entry">
+                <label>Select Members:</label>
+                {% for user in all_users %}
+                <div>
+                    <input type="checkbox" id="member_{{ user.id }}" name="members[]" value="{{ user.id }}">
+                    <label for="member_{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</label>
+                </div>
+                {% if not loop.last %}
+                <br>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <div style="text-align: center;">
+                <button type="submit">Create Group</button>
+            </div>
+        </form>
+    </div>
+</body>
 {% endblock %}
+

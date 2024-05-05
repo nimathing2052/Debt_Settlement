@@ -84,6 +84,14 @@
         .footer-links a:hover {
             text-decoration: underline;
         }
+        button[type="submit"] {
+            background-color: #008cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -131,11 +139,11 @@
                 <ul class="navbar-nav">
                   {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link border-left" href="{{ url_for('logout') }}">LOG OUT</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link border-left" href="{{ url_for('login') }}">LOG IN</a>
+                        <a class="nav-link" href="{{ url_for('login') }}">LOG IN</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">REGISTER</a>
