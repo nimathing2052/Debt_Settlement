@@ -35,13 +35,13 @@ def init_debt_routes(app):
         
         # Subquery for total credits per user
         credit_subquery = db.session.query(
-            Transaction.payer_id.label('user_id'),
+            GroupTransaction.payer_id.label('user_id'),
             func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
         ).group_by(Transaction.payer_id).subquery()
 
         # Subquery for total debts per user
         debt_subquery = db.session.query(
-            Transaction.debtor_id.label('user_id'),
+            GroupTransaction.debtor_id.label('user_id'),
             func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
         ).group_by(Transaction.debtor_id).subquery()
 
@@ -88,15 +88,15 @@ def init_debt_routes(app):
 
         # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
         transactions = db.session.query(
-            Transaction.item_name,
+            GroupTransaction.description,
             Payer.first_name.label('payer_first_name'),
             Payer.last_name.label('payer_last_name'),
             Debtor.first_name.label('debtor_first_name'),
             Debtor.last_name.label('debtor_last_name'),
-            Transaction.amount,
-            Transaction.time_date
-        ).join(Payer, Payer.id == Transaction.payer_id) \
-        .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
+            GroupTransaction.amount,
+            GroupTransaction.created_at
+        ).join(Payer, Payer.id == GroupTransaction.payer_id) \
+        .join(Debtor, Debtor.id == GroupTransaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
 
         return render_template('dashboard.html', net_balances=net_balances, transactions=transactions, groups=groups_query)
 
