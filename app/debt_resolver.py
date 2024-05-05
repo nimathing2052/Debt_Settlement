@@ -2,6 +2,7 @@ from flask import render_template
 from app.models import User, db, GroupTransaction
 import heapq
 
+
 # define custom comparison logic for sorting or prioritizing data to make priority_queue
 # AscCmp is used for ascending order comparison, DscCmp is used for descending order. 
 # compare elements based on the second item in tuples, which represents credit/debit
@@ -11,18 +12,20 @@ class AscCmp:
     def __call__(self, p1, p2):
         return p1[1] < p2[1]
 
+
 # minHeap Comparison
 class DscCmp:
     def __call__(self, p1, p2):
         return p1[1] > p2[1]
-    
+
 
 class Solution:
     def __init__(self):
         self.minQ = []
         self.maxQ = []
 
-    def constructMinMaxQ(self, amount): # Positive balance (credits) pushed to max-heap; neg amounts (debts) to min-heap.
+    def constructMinMaxQ(self,
+                         amount):  # Positive balance (credits) pushed to max-heap; neg amounts (debts) to min-heap.
         """initializes min and max heaps from a list of balance amounts where + values indicate credit and
         - values indicate debit."""
         for i in range(len(amount)):
@@ -37,10 +40,10 @@ class Solution:
         """resolves transactions between creditors and debtors, minimizing transactions by always
         trying to settle the maximum payable amounts between pairs."""
         results = []
-        while self.minQ and self.maxQ: # continues until all possible transactions are settled.
-            maxCreditEntry = heapq.heappop(self.maxQ) #pairing qs
+        while self.minQ and self.maxQ:  # continues until all possible transactions are settled.
+            maxCreditEntry = heapq.heappop(self.maxQ)  # pairing qs
             maxDebitEntry = heapq.heappop(self.minQ)
-              
+
             # records each transaction as string - who pays whom, how much
             transaction_val = maxCreditEntry[1] + maxDebitEntry[1]
             debtor = maxDebitEntry[0]
@@ -63,7 +66,6 @@ class Solution:
             results.append(f"{debtor_user.first_name} pays {owed_amount} euros to {creditor_user.first_name}")
         return results
 
-
     def minCashFlow(self, graph, persons):
         n = len(graph)
         amount = [0] * n
@@ -73,7 +75,7 @@ class Solution:
             for j in range(n):
                 amount[i] += (graph[j][i] - graph[i][j])
 
-        min_heap = []  # Debtors 
+        min_heap = []  # Debtors
         max_heap = []  # Creditors
 
         # create min and max heaps
@@ -83,7 +85,7 @@ class Solution:
             elif amount[i] > 0:
                 heapq.heappush(max_heap, (-amount[i], i))  # Max-heap for creditors (negate amount)
         results = []
-        
+
         # settle  - pop from heaps
         while min_heap and max_heap:
             debt_amount, debtor = heapq.heappop(min_heap)
@@ -126,6 +128,7 @@ def read_db_to_adjacency_matrix():
         adjacency_matrix[i][j] += transaction.amount
 
     return adjacency_matrix, persons
+
 
 def build_adjacency_matrix_from_transactions(transactions):
     persons = {}
@@ -188,7 +191,7 @@ def resolve_group_debts(group_id):
         # payment instruction
         payer = User.query.get(payer_id)
         receiver = User.query.get(receiver_id)
-        payment_instructions.append(f"{payer.first_name} pays {settled_amount} euros to {receiver.first_name}")
+        payment_instructions.append(f"{receiver.first_name} pays {settled_amount} euros to {payer.first_name}")
 
         # Move to the next payer/receiver if they have nothing left to pay/receive
         if payers[i][1] == 0:
@@ -198,8 +201,9 @@ def resolve_group_debts(group_id):
 
     return payment_instructions
 
+
 def read_db_to_adjacency_matrix():
-    persons = set()  
+    persons = set()
 
     transactions = GroupTransaction.query.all()
 
@@ -254,7 +258,6 @@ def ford_fulkerson(graph, source, sink):
         while s != source:
             path_flow = min(path_flow, residual_graph[parent[s]][s])
             s = parent[s]
-
         v = sink
         while v != source:
             u = parent[v]
@@ -265,3 +268,21 @@ def ford_fulkerson(graph, source, sink):
         max_flow += path_flow
 
     return max_flow
+
+def build_adjacency_matrix_from_transactions(transactions):
+    persons = {}
+    index = 0
+    adjacency_matrix = []
+    for transaction in transactions:
+        if transaction.payer_id not in persons:
+            persons[transaction.payer_id] = index
+            adjacency_matrix.append([0] * (index + 1))
+            index += 1
+        if transaction.debtor_id not in persons:
+            persons[transaction.debtor_id] = index
+            adjacency_matrix.append([0] * (index + 1))
+            index += 1
+        payer_index = persons[transaction.payer_id]
+        debtor_index = persons[transaction.debtor_id]
+        adjacency_matrix[payer_index][debtor_index] += transaction.amount
+    return list(persons.keys()), adjacency_matrix
