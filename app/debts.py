@@ -303,8 +303,7 @@ def init_debt_routes(app):
             .options(joinedload(
             GroupTransaction.payer)).all()  
         return render_template('view_group.html', group=group, transactions=transactions)
-    
-    
+
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')
@@ -313,8 +312,8 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
-            debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
+            credit_transactions = GroupTransaction.query.filter_by(payer_id=user_id).all()
+            debit_transactions = GroupTransaction.query.filter_by(debtor_id=user_id).all()
 
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
@@ -330,17 +329,16 @@ def init_debt_routes(app):
             }
 
             transactions = credit_transactions + debit_transactions
-            transactions.sort(key=lambda x: x.time_date, reverse=True)
-            
+            transactions.sort(key=lambda x: x.created_at, reverse=True)
+
             user_groups = Group.query.join(UserGroup).filter(UserGroup.user_id == user_id).all()
 
-
-            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions, user_groups=user_groups)
+            return render_template('dashboard_personal.html', monetary_values=monetary_values,
+                                   transactions=transactions, user_groups=user_groups)
 
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
-
 
     @app.route('/add_member_to_group', methods=['POST'])
     def add_member_to_group():

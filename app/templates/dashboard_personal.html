@@ -1,156 +1,105 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<html>
 <head>
     <title>Your Personal Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        .collapsible {
-            background-color: #f1f1f1;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
+        .mt-3 { margin-top: 16px; }
+        .mb-4 { margin-bottom: 16px; }
+        .footer {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
         }
-        .collapsible p {
-            display: none;
-            padding: 5px;
-        }
-        .collapsible ul.hidden {
-            display: none; /* Hide the list by default */
-        }
-        .collapsible.active p {
-            display: block;
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0,0,0,.05);
         }
     </style>
 </head>
 <body>
-    <br>
-    <h3>Your Personal Finances Overview</h3>
-    <div>
-        <h5>Your Net Debts</h5>
-        <ul>
-            <li>Total Incoming Payments Due: €{{ monetary_values.total_credit | abs }}</li>
-            <li>Total Expenses Owed: €{{ monetary_values.total_debit | abs }}</li>
-            <li style="color: {% if monetary_values.net_balance >= 0 %}green{% else %}red{% endif %}">
-                Net Balance: €{{ monetary_values.net_balance | abs | round(2) }}
-            </li>
-        </ul>
-        <div class="container mt-3">
-            <form action="{{ url_for('settle_up') }}" method="post">
-                <button type="submit" class="btn btn-success">Settle Up Your Debts!</button>
-            </form>
+    <div class="container">
+        <h3 class="mt-3">Your Personal Finances Overview</h3>
+        <div>
+            <h5>Your Net Debts</h5>
+            <ul>
+                <li>Total Incoming Payments Due: €{{ monetary_values.total_credit | abs }}</li>
+                <li>Total Expenses Owed: €{{ monetary_values.total_debit | abs }}</li>
+                <li style="color: {{ 'green' if monetary_values.net_balance >= 0 else 'red' }}">
+                    Net Balance: €{{ monetary_values.net_balance | abs | round(2) }}
+                </li>
+            </ul>
+            <div class="mt-3">
+                <form action="{{ url_for('settle_up') }}" method="post">
+                    <button type="submit" class="btn btn-success">Settle Up Your Debts!</button>
+                </form>
+            </div>
         </div>
-    </div>
-    <br>
-    <hr>
+        <hr>
+        <h5 class="mb-4">Your Groups</h5>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Group Name</th>
+                    <th>Date Created</th>
+                    <th>Members</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in user_groups %}
+                <tr>
+                    <td>{{ group.name }}</td>
+                    <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ group.users.count() }} Members</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3">You are not part of any groups.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <h5 class="mb-4">Your Groups</h5>
-    
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Group Name</th>
-                <th>Date Created</th>
-                <th>Members</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for group in user_groups %}
-            <tr>
-                <td>{{ group.name }}</td>
-                <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
-                <td>{{ len(group.users) }} Members</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
-    <h5 class="mb-4">Your Groups</h5>
-    <table class="table table-striped">
-        <thead class="thead-dark">
-            <tr>
-                <th>Group Name</th>
-                <th>Date Created</th>
-                <th>Members</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for group in user_groups %}
-            <tr>
-                <td>{{ group.name }}</td>
-                <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
-                <td>{{ len(group.users.all()) }} Members</td>  <!-- Ensure the counting of members is correct -->
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3">You are not part of any groups.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
-    <hr>
-    <br>
-    <h5 class="mb-4">A Short History of Your Transactions</h5>
-    <table id="transactionsTable" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Payer Name</th>
-                <th>Payee Name</th>
-                <th>Item Name</th>
-                <th>Amount</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
+        <h5 class="mb-4">A Short History of Your Transactions</h5>
+        <table id="transactionsTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Payer Name</th>
+                    <th>Payee Name</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
                     <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
-                    <td>{{ transaction.item_name }}</td>
-                    <td> €{{ transaction.amount |  abs | round(2) }}</td>
-                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>€{{ transaction.amount | abs | round(2) }}</td>
+                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-<footer class="footer bg-light fixed-bottom">
-    <div class="container" style="text-align: center;">
-        <span class="text-muted footer-links">
-            <a href="/about">About</a> | <a href="/home">Home</a> | <a href="https://github.com/nimathing2052/Debt_Settlement">GitHub</a>
-        </span>
-        <span class="text-muted" style="font-size: 14px; float: right;">&copy; 2024 ClearSkies</span>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</footer>
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">Links: <a href="/about">About</a> | <a href="/home">Home</a> | <a href="https://github.com/nimathing2052/Debt_Settlement">GitHub</a></span>
+            <span class="text-muted" style="float: right;">&copy; 2024 ClearSkies</span>
+        </div>
+    </footer>
+</body>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function() {
-        var table = $('#transactionsTable').DataTable({
-            "order": [[4, "desc"]], // Default ordering by date, descending
-            "initComplete": function () {
-                this.api().columns().every(function () {
-                    var column = this;
-                    var input = $('<input type="text" placeholder="Search '+column.header().textContent+'" />')
-                        .appendTo($(column.footer()).empty())
-                        .on('change', function () {
-                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                            column.search(val ? val : '', true, false).draw();
-                        });
-
-                    input.on('click', function(e) {
-                        e.stopPropagation();
-                    });
-                });
-            }
+        $('#transactionsTable').DataTable({
+            "order": [[4, "desc"]],
         });
     });
 </script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
-    
-</html>
 {% endblock %}
