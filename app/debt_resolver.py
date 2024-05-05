@@ -1,29 +1,30 @@
 from flask import render_template
-from app.models import User, db, GroupTransaction, Transaction
+from app.models import User, db, GroupTransaction
 import heapq
 
-# Comparator that will be used to make priority_queue
-# containing pair of integers maxHeap Comparison is based
-# on second entry in the pair which represents cash
-# credit/debit
+# define custom comparison logic for sorting or prioritizing data to make priority_queue
+# AscCmp is used for ascending order comparison, DscCmp is used for descending order. 
+# compare elements based on the second item in tuples, which represents credit/debit
+
+# maxHeap Comparison is based on 2ns entry in the pair 
 class AscCmp:
     def __call__(self, p1, p2):
         return p1[1] < p2[1]
 
-# Comparator that will be used to make priority_queue
-# containing pair of integers minHeap Comparison is based
-# on second entry in the pair which represents cash
-# credit/debit
+# minHeap Comparison
 class DscCmp:
     def __call__(self, p1, p2):
         return p1[1] > p2[1]
+    
 
 class Solution:
     def __init__(self):
         self.minQ = []
         self.maxQ = []
 
-    def constructMinMaxQ(self, amount):
+    def constructMinMaxQ(self, amount): # Positive balance (credits) pushed to max-heap; neg amounts (debts) to min-heap.
+        """initializes min and max heaps from a list of balance amounts where + values indicate credit and
+        - values indicate debit."""
         for i in range(len(amount)):
             if amount[i] == 0:
                 continue
@@ -33,11 +34,14 @@ class Solution:
                 heapq.heappush(self.minQ, (i, amount[i]))
 
     def solveTransaction(self, persons):
+        """resolves transactions between creditors and debtors, minimizing transactions by always
+        trying to settle the maximum payable amounts between pairs."""
         results = []
-        while self.minQ and self.maxQ:
-            maxCreditEntry = heapq.heappop(self.maxQ)
+        while self.minQ and self.maxQ: # continues until all possible transactions are settled.
+            maxCreditEntry = heapq.heappop(self.maxQ) #pairing qs
             maxDebitEntry = heapq.heappop(self.minQ)
-
+              
+            # records each transaction as string - who pays whom, how much
             transaction_val = maxCreditEntry[1] + maxDebitEntry[1]
             debtor = maxDebitEntry[0]
             creditor = maxCreditEntry[0]
@@ -59,50 +63,63 @@ class Solution:
             results.append(f"{debtor_user.first_name} pays {owed_amount} euros to {creditor_user.first_name}")
         return results
 
+
     def minCashFlow(self, graph, persons):
         n = len(graph)
         amount = [0] * n
+
+        # calculate net amount to be paid to (positive) or paid by (negative) each person
         for i in range(n):
             for j in range(n):
-                diff = graph[j][i] - graph[i][j]
-                amount[i] += diff
-        self.constructMinMaxQ(amount)
-        return self.solveTransaction(persons)
-        n = len(graph)
+                amount[i] += (graph[j][i] - graph[i][j])
 
-        # Calculate the cash to be credited/debited to/from
-        # each person and store in vector amount
-        amount = [0] * n
+        min_heap = []  # Debtors 
+        max_heap = []  # Creditors
+
+        # create min and max heaps
         for i in range(n):
-            for j in range(n):
-                diff = graph[j][i] - graph[i][j]
-                amount[i] += diff
+            if amount[i] < 0:
+                heapq.heappush(min_heap, (amount[i], i))  # Min-heap for debtors
+            elif amount[i] > 0:
+                heapq.heappush(max_heap, (-amount[i], i))  # Max-heap for creditors (negate amount)
+        results = []
+        
+        # settle  - pop from heaps
+        while min_heap and max_heap:
+            debt_amount, debtor = heapq.heappop(min_heap)
+            credit_amount, creditor = heapq.heappop(max_heap)
 
-        # Fill in both queues minQ and maxQ using amount
-        # vector
-        self.constructMinMaxQ(amount)
+            settled_amount = min(-debt_amount, -credit_amount)  # Amount is negated back
+            debtor_user = User.query.get(persons[debtor])
+            creditor_user = User.query.get(persons[creditor])
+            results.append(f"{debtor_user.first_name} pays {settled_amount} euros to {creditor_user.first_name}")
 
-        # Solve the transaction using minQ, maxQ and amount
-        # vector
-        self.solveTransaction()
+            # Update the heaps
+            if -debt_amount > settled_amount:
+                heapq.heappush(min_heap, (debt_amount + settled_amount, debtor))
+            if -credit_amount > settled_amount:
+                heapq.heappush(max_heap, (credit_amount + settled_amount, creditor))
+
+        return results
+
 
 def read_db_to_adjacency_matrix():
-    persons = set()  # Store unique person IDs
+    """fetches all group transactions; constructs adjacency matrix to represent debts between individuals."""
+    persons = set()  # store unique person IDs
 
-    # Using SQLAlchemy to query the Transaction model
-    transactions = Transaction.query.all()
+    transactions = GroupTransaction.query.all()
 
-    # Determine unique persons
+    # determine unique persons
     for transaction in transactions:
         persons.add(transaction.payer_id)
         persons.add(transaction.debtor_id)
 
-    persons = sorted(list(persons))  # Sort persons by their IDs (sorted for consistent order)
+    persons = sorted(list(persons))  # sort by IDs (sorted for consistent order)
 
     n = len(persons)
     adjacency_matrix = [[0] * n for _ in range(n)]
 
-    # Populate the adjacency matrix with transaction amounts
+    # populate the adjacency matrix with transaction amounts
     for transaction in transactions:
         i = persons.index(transaction.payer_id)
         j = persons.index(transaction.debtor_id)
@@ -139,8 +156,8 @@ def resolve_group_debts(group_id):
     # Fetch transactions related to the specified group only
     transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
 
-    # Now, you need to calculate the total amount each member needs to pay or receive.
-    # This is like calculating the net balance for each user.
+    # to calculate the total amount each member needs to pay or receive
+    # calculating the net balance for each user
 
     net_balances = {}
     for transaction in transactions:
@@ -148,27 +165,27 @@ def resolve_group_debts(group_id):
         net_balances[transaction.debtor_id] = net_balances.get(transaction.debtor_id, 0) - transaction.amount
         net_balances[transaction.payer_id] = net_balances.get(transaction.payer_id, 0) + transaction.amount
 
-    # Now, split the balances into payers and receivers
+    # split the balances into payers and receivers
     payers = [(user_id, balance) for user_id, balance in net_balances.items() if balance > 0]
     receivers = [(user_id, -balance) for user_id, balance in net_balances.items() if balance < 0]
 
-    # Sort them by the amount to optimize the number of transactions
+    # sort by amount to optimize numb of transactions
     payers.sort(key=lambda x: x[1], reverse=True)
     receivers.sort(key=lambda x: x[1])
 
     payment_instructions = []
     i, j = 0, 0
-    # Go through the payers and receivers and settle debts
+    # go through the payers and receivers and settle debts
     while i < len(payers) and j < len(receivers):
         payer_id, pay_amount = payers[i]
         receiver_id, receive_amount = receivers[j]
 
-        # Determine the amount to be settled
+        # amount to be settled
         settled_amount = min(pay_amount, receive_amount)
         payers[i] = (payer_id, pay_amount - settled_amount)
         receivers[j] = (receiver_id, receive_amount - settled_amount)
 
-        # Create a payment instruction
+        # payment instruction
         payer = User.query.get(payer_id)
         receiver = User.query.get(receiver_id)
         payment_instructions.append(f"{payer.first_name} pays {settled_amount} euros to {receiver.first_name}")
@@ -182,26 +199,32 @@ def resolve_group_debts(group_id):
     return payment_instructions
 
 def read_db_to_adjacency_matrix():
+    persons = set()  
+
     transactions = GroupTransaction.query.all()
-    users = User.query.all()
-    matrix = {}
-    persons = {}
 
-    # Initialize matrix and persons dictionary
-    for user in users:
-        persons[user.id] = user.first_name  # Simplified; adjust as needed
-        for other_user in users:
-            matrix[(user.id, other_user.id)] = 0
-
-    # Populate matrix with transaction data
     for transaction in transactions:
-        matrix[(transaction.debtor_id, transaction.payer_id)] += transaction.amount
+        persons.add(transaction.payer_id)
+        persons.add(transaction.debtor_id)
 
-    return matrix, persons
+    persons = sorted(list(persons))  # Sort persons by their IDs (sorted for consistent order)
+
+    n = len(persons)
+    adjacency_matrix = [[0] * n for _ in range(n)]
+
+    # Populate the adjacency matrix with transaction amounts
+    for transaction in transactions:
+        i = persons.index(transaction.payer_id)
+        j = persons.index(transaction.debtor_id)
+        adjacency_matrix[i][j] += transaction.amount
+
+    return adjacency_matrix, persons
 
 
-# Function to implement the Ford-Fulkerson method for maximum flow problem
+# maximum flow problem 
 def ford_fulkerson(graph, source, sink):
+    """find max flow from a source to a sink in a flow network."""
+
     parent = [-1] * len(graph)
     max_flow = 0
 

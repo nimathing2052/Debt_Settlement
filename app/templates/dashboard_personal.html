@@ -27,7 +27,7 @@
                 <li>Total Incoming Payments Due: €{{ monetary_values.total_credit | abs }}</li>
                 <li>Total Expenses Owed: €{{ monetary_values.total_debit | abs }}</li>
                 <li style="color: {{ 'green' if monetary_values.net_balance >= 0 else 'red' }}">
-                    Net Balance: €{{ monetary_values.net_balance | abs | round(2) }}
+                    Net Balance: €{{ monetary_values.net_balance | round(2) }}
                 </li>
             </ul>
             <div class="mt-3">

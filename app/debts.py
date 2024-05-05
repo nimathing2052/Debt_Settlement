@@ -12,7 +12,7 @@ from .models.group import UserGroup
 from sqlalchemy.orm import joinedload
 from matplotlib import pyplot as plt
 from .algorithm_complexity import generate_complexity_plots
-
+from sqlalchemy.orm import joinedload
 
 def init_debt_routes(app):
 
@@ -175,17 +175,20 @@ def init_debt_routes(app):
 
         if request.method == 'POST':
             try:
+                # Assuming this function returns an adjacency matrix and a list of persons
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
+                # Assuming this function returns payment instructions as a list of strings
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                if payment_instructions:
-                    return render_template('result2.html', payments=payment_instructions)
-                else:
+                if not payment_instructions:
                     flash('No transactions found to settle up.', 'warning')
-                    return render_template('settle_up.html')
+                    return redirect(url_for('settle_up'))
+                return render_template('result2.html', payments=payment_instructions)
             except Exception as e:
-                flash(str(e), 'danger')
-                return render_template('settle_up.html')
+                error_message = str(e)
+                app.logger.error(f"Error during settlement: {error_message}")  # Log error
+                flash(f"An error occurred: {error_message}", 'danger')  # Show error in flash message
+                return redirect(url_for('settle_up'))
 
         return render_template('settle_up.html')
 
@@ -266,16 +269,14 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            payer_id = session.get('user_id')
-            debtor_id = int(request.form.get('debtor_id'))  # Retrieve debtor_id from the form
-            amount = request.form.get('amount', type=float)
-            description = request.form.get('description', type=str)
-            payer = User.query.get_or_404(payer_id)
-            debtor = User.query.get_or_404(debtor_id)
-            # Input validation for all fields:
-            # if not debtor_id or debtor_id == payer_id:
-            #     flash('Invalid debtor specified.', 'warning')
-            #     return redirect(url_for('add_transaction_to_group'))
+            payer_id = request.form.get('payer_id', type=int)  # Get payer_id from the form
+            debtor_id = request.form.get('debtor_id', type=int)  # Retrieve debtor_id from the form
+            amount = float(request.form.get('amount'))
+            description = request.form.get('description', default="")
+
+            if not debtor_id or debtor_id == payer_id:
+                flash('Debtor cannot be the same as the payer.', 'warning')
+                return redirect(url_for('add_transaction_to_group'))
             if amount <= 0:
                 flash('Amount must be positive', 'warning')
                 return redirect(url_for('add_transaction_to_group'))
@@ -291,8 +292,7 @@ def init_debt_routes(app):
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
-        
-        
+
         users = User.query.all()
         groups = Group.query.all()
         return render_template('add_transaction_to_group.html', groups=groups, users=users)
@@ -313,8 +313,15 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            credit_transactions = GroupTransaction.query.filter_by(payer_id=user_id).all()
-            debit_transactions = GroupTransaction.query.filter_by(debtor_id=user_id).all()
+            credit_transactions = GroupTransaction.query.options(
+                joinedload(GroupTransaction.payer),
+                joinedload(GroupTransaction.debtor)
+            ).filter_by(payer_id=user_id).all()
+
+            debit_transactions = GroupTransaction.query.options(
+                joinedload(GroupTransaction.payer),
+                joinedload(GroupTransaction.debtor)
+            ).filter_by(debtor_id=user_id).all()
 
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
@@ -406,4 +413,4 @@ def init_debt_routes(app):
             selected_group = Group.query.get_or_404(group_id)  
             payment_instructions = resolve_group_debts(group_id)
 
-        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions)
+        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions,scrolled_to_instructions=True)

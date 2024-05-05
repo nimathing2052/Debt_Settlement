@@ -2,8 +2,10 @@
 
 {% block content %}
 <div class="container mt-3">
+    <h2>Settle Up</h2>
+    <p>Click the button below to calculate and settle all outstanding balances.</p>
     <form action="{{ url_for('settle_up') }}" method="post">
-        <button type="submit" class="btn btn-success">Settle Up!</button>
+        <button type="submit" class="btn btn-primary">Settle Up Debts</button>
     </form>
 </div>
 {% endblock %}
@@ -14,21 +16,13 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function() {
-        $('#balance-tab').click(function(e) {
-            e.preventDefault(); // Prevent default link behavior
-
-            $.ajax({
-                type: 'GET',
-                url: '/total_debt', // URL to fetch total debt from
-                success: function(response) {
-                    // Assuming you have a place to display this in your layout.html or another relevant template
-                    $('#balance-display').html('<h2>Total Debt: $' + response.total_debt + '</h2>');
-                },
-                error: function(xhr, status, error) {
-                    // Handle errors
-                    console.error(error);
-                }
-            });
+        $('form').on('submit', function(e) {
+            e.preventDefault(); // Optionally prevent the default form submission
+            var form = this;
+            // Example: Confirm with the user before submitting
+            if (confirm('Are you sure you want to settle all debts? This action cannot be undone.')) {
+                form.submit(); // Submit the form if confirmed
+            }
         });
     });
 </script>
