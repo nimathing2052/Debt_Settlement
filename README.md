@@ -82,6 +82,8 @@ Space Complexity: $O(n)$
 - Queues: $O(n)$. The space is required to hold all individuals across the two priority queues.
 - Amount Array: $O(n)$. This array is used to calculate the net balance for each individual, which is essential for determining who owes and who is owed.
 
+![Time and Space Complexity of the Algorithm](algo_complexity.png)
+
 ## How to Use ClearSkies
 
 1. Clone this repository to your local machine.
