@@ -45,43 +45,44 @@
 
 <div class="container mt-3">
     <h3>Select Group for Debt Settlement</h3>
-    {% if groups %}
-        <table>
-            <thead>
+    {% if groups.items %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
                 <tr>
                     <th>Group Name</th>
-                    <th>Actions</th>
-                    <th>View</th>
+                    <th>Date Created</th>
+                    <th>Member Count</th>
+                    <th>Transaction Count</th>
+                    <th>Total Value of Transactions</th>
+                    <th>Settle Debts</th>
                 </tr>
             </thead>
             <tbody>
-                {% for group in groups %}
+                {% for group in groups.items %}
                 <tr>
                     <td>{{ group.name }}</td>
+                    <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ group.member_count }}</td>
+                    <td>{{ group.total_transactions }}</td>
+                    <td>€{{ "%.2f"|format(group.total_amount) }}</td>
                     <td>
                         <form action="{{ url_for('settle_group_debts') }}" method="post">
                             <input type="hidden" name="group_id" value="{{ group.id }}">
                             <button type="submit" class="btn btn-sm btn-success">Settle</button>
                         </form>
                     </td>
-                    <td>
-                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-primary">View</a>
-                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {{ groups.pagination_links }}
     {% else %}
-        <p>You don't belong to any groups.</p>
+        <p>No groups available.</p>
     {% endif %}
 
     {% if payment_instructions %}
     <div class="mt-4">
-        {% if group %}
-            <h4>Settlement Instructions for Group {{ group.name }}</h4>
-        {% else %}
-            <h4>Settlement Instructions</h4>
-        {% endif %}
+        <h4>Settlement Instructions for Group {{ selected_group.name }}</h4>
         <table>
             <thead>
                 <tr><th>Instructions</th></tr>

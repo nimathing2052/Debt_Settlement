@@ -397,9 +397,32 @@ def init_debt_routes(app):
 
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
-        groups = Group.query.all() 
-        group = None  
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
         payment_instructions = []
+        selected_group = None
+
+        member_count_subquery = db.session.query(
+            UserGroup.group_id.label('group_id'),
+            func.count('*').label('member_count')
+        ).group_by(UserGroup.group_id).subquery()
+
+        transaction_stats_subquery = db.session.query(
+            GroupTransaction.group_id.label('group_id'),
+            func.count('*').label('total_transactions'),
+            func.sum(GroupTransaction.amount).label('total_amount')
+        ).group_by(GroupTransaction.group_id).subquery()
+
+        groups = db.session.query(
+            Group.id,
+            Group.name,
+            Group.created_at,
+            func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
+            func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
+            func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
+        ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
+        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+        .paginate(page=page, per_page=per_page, error_out=False)
 
         if request.method == 'POST':
             if 'user_id' not in session:
@@ -407,11 +430,7 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            group = Group.query.get_or_404(group_id)  
-            transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+            selected_group = Group.query.get_or_404(group_id)  
             payment_instructions = resolve_group_debts(group_id)
-        
-        return render_template('settle_group_debts.html', groups=groups, group=group,
-                               payment_instructions=payment_instructions)
 
-
+        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions)
