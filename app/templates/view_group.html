@@ -48,6 +48,7 @@
         <thead>
             <tr>
                 <th>Payer</th>
+                <th>Debtor</th>
                 <th>Description</th>
                 <th>Amount</th>
             </tr>
@@ -56,6 +57,7 @@
             {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+                    <td>{{transaction.debtor.first_name}} {{transaction.debtor.last_name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>{{ transaction.amount }}</td>
                 </tr>
