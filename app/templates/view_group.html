@@ -29,6 +29,17 @@
     .transactions-table tbody tr:last-of-type {
         border-bottom: 2px solid #009879;
     }
+    .settle-btn {
+        display: block;
+        width: max-content;
+        padding: 10px 20px;
+        margin: 20px auto;
+        background-color: #009879;
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        border-radius: 5px;
+    }
 </style>
 
 <h2>Group Transactions</h2>
@@ -51,10 +62,9 @@
             {% endfor %}
         </tbody>
     </table>
+    <a href="{{ url_for('settle_group_debts', group_id=group.id) }}" class="settle-btn">Settle Up</a>
 {% else %}
     <p>No transactions yet.</p>
 {% endif %}
-
-
 
 {% endblock %}

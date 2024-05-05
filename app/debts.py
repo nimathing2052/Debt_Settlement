@@ -133,7 +133,7 @@ def init_debt_routes(app):
             flash('An error occurred while fetching monetary values.', 'danger')
             return redirect(url_for('user_profile'))
 
-    # Route to display the list of users and send money
+    
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
@@ -290,18 +290,14 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            # Fetch credit and debit transactions
             credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
             debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
 
-            # Sum up credits and debits
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
 
-            # Calculate net balance
             net_balance = total_credit - total_debit
 
-            # Prepare data for template
             monetary_values = {
                 'credits': credit_transactions,
                 'debts': debit_transactions,
@@ -310,7 +306,6 @@ def init_debt_routes(app):
                 'net_balance': net_balance
             }
 
-            # Combine credit and debit transactions for the transaction history table
             transactions = credit_transactions + debit_transactions
             transactions.sort(key=lambda x: x.time_date, reverse=True)
 
@@ -347,8 +342,8 @@ def init_debt_routes(app):
 
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
-        groups = Group.query.all()  # Fetch all groups
-        group = None  # Initialize group variable
+        groups = Group.query.all() 
+        group = None  
         payment_instructions = []
 
         if request.method == 'POST':
@@ -357,7 +352,7 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            group = Group.query.get_or_404(group_id)  # Fetch the group
+            group = Group.query.get_or_404(group_id)  
             transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
             payment_instructions = resolve_group_debts(group_id)
 
