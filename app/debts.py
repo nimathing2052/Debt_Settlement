@@ -218,19 +218,14 @@ def init_debt_routes(app):
                 flash('Please log in to input debts.', 'warning')
                 return redirect(url_for('login'))
 
-            group_id = request.form.get('group_id', type=int)
-            payer_id = session.get('user_id')
-            debtor_id = int(request.form.get('debtor_id'))  # Retrieve debtor_id from the form
-            amount = request.form.get('amount', type=float)
-            description = request.form.get('description', type=str)
-            payer = User.query.get_or_404(payer_id)
-            debtor = User.query.get_or_404(debtor_id)
-            # Input validation for all fields:
-            if not debtor_id or debtor_id == payer_id:
-                flash('Invalid debtor specified.', 'warning')
-                return redirect(url_for('add_transaction_to_group'))
-            if amount <= 0:
-                flash('Amount must be positive', 'warning')
+            group_id = int(request.form.get('group_id'))
+            payer_id = int(request.form.get('payer_id'))
+            debtor_id = int(request.form.get('debtor_id'))
+            amount = float(request.form.get('amount'))
+            description = request.form.get('description', '')
+
+            if debtor_id == payer_id or amount <= 0:
+                flash('Invalid input.', 'warning')
                 return redirect(url_for('add_transaction_to_group'))
 
             transaction = GroupTransaction(
@@ -244,6 +239,7 @@ def init_debt_routes(app):
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
+
         users = User.query.all()
         groups = Group.query.all()
         return render_template('add_transaction_to_group.html', groups=groups, users=users)
@@ -251,17 +247,13 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-
-        # Define aliases for User model as done in the dashboard function
         Payer = aliased(User, name='payer')
         Debtor = aliased(User, name='debtor')
 
-        # Adjusting the query to fetch all transactions with payer and debtor details
         transactions = db.session.query(
-            GroupTransaction.id,
-            GroupTransaction.description,
             GroupTransaction.amount,
             GroupTransaction.created_at,
+            GroupTransaction.description,  # Make sure this attribute exists in your model or is correctly named
             Payer.first_name.label('payer_first_name'),
             Payer.last_name.label('payer_last_name'),
             Debtor.first_name.label('debtor_first_name'),

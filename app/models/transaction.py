@@ -10,3 +10,4 @@ class Transaction(db.Model):
     debtor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     time_date = db.Column(db.DateTime, default=datetime.utcnow)
+
