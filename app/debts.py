@@ -266,16 +266,14 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            payer_id = session.get('user_id')
-            debtor_id = int(request.form.get('debtor_id'))  # Retrieve debtor_id from the form
-            amount = request.form.get('amount', type=float)
-            description = request.form.get('description', type=str)
-            payer = User.query.get_or_404(payer_id)
-            debtor = User.query.get_or_404(debtor_id)
-            # Input validation for all fields:
-            # if not debtor_id or debtor_id == payer_id:
-            #     flash('Invalid debtor specified.', 'warning')
-            #     return redirect(url_for('add_transaction_to_group'))
+            payer_id = request.form.get('payer_id', type=int)  # Get payer_id from the form
+            debtor_id = request.form.get('debtor_id', type=int)  # Retrieve debtor_id from the form
+            amount = float(request.form.get('amount'))
+            description = request.form.get('description', default="")
+
+            if not debtor_id or debtor_id == payer_id:
+                flash('Debtor cannot be the same as the payer.', 'warning')
+                return redirect(url_for('add_transaction_to_group'))
             if amount <= 0:
                 flash('Amount must be positive', 'warning')
                 return redirect(url_for('add_transaction_to_group'))
@@ -291,8 +289,7 @@ def init_debt_routes(app):
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
-        
-        
+
         users = User.query.all()
         groups = Group.query.all()
         return render_template('add_transaction_to_group.html', groups=groups, users=users)
