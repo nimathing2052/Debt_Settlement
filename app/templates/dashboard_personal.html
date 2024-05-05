@@ -130,7 +130,7 @@
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function() {
-        var table = ('#transactionsTable').DataTable({
+        var table = $('#transactionsTable').DataTable({
             "order": [[4, "desc"]], // Default ordering by date, descending
             "initComplete": function () {
                 this.api().columns().every(function () {
