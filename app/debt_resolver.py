@@ -2,17 +2,15 @@ from flask import render_template
 from app.models import User, db, GroupTransaction
 import heapq
 
-# Comparator that will be used to make priority_queue
-# containing pair of integers maxHeap Comparison is based
-# on second entry in the pair which represents cash
+# Comparator to make priority_queue
+# containing pair of integers maxHeap Comparison is based on 2ns entry in the pair which represents cash
 # credit/debit
 class AscCmp:
     def __call__(self, p1, p2):
         return p1[1] < p2[1]
 
-# Comparator that will be used to make priority_queue
-# containing pair of integers minHeap Comparison is based
-# on second entry in the pair which represents cash
+# Comparator to make priority_queue
+# containing pair of integers minHeap Comparison is based on 2nd entry in the pair which represents cash
 # credit/debit
 class DscCmp:
     def __call__(self, p1, p2):
@@ -24,6 +22,8 @@ class Solution:
         self.maxQ = []
 
     def constructMinMaxQ(self, amount):
+        """initializes min and max heaps from a list of balance amounts where + values indicate credit and
+        - values indicate debit."""
         for i in range(len(amount)):
             if amount[i] == 0:
                 continue
@@ -33,6 +33,8 @@ class Solution:
                 heapq.heappush(self.minQ, (i, amount[i]))
 
     def solveTransaction(self, persons):
+        """resolves transactions between creditors and debtors, minimizing transactions by always
+        trying to settle the maximum payable amounts between pairs."""
         results = []
         while self.minQ and self.maxQ:
             maxCreditEntry = heapq.heappop(self.maxQ)
@@ -64,7 +66,7 @@ class Solution:
         n = len(graph)
         amount = [0] * n
 
-        # Calculate net amount to be paid to (positive) or paid by (negative) each person
+        # calculate net amount to be paid to (positive) or paid by (negative) each person
         for i in range(n):
             for j in range(n):
                 amount[i] += (graph[j][i] - graph[i][j])
@@ -72,7 +74,7 @@ class Solution:
         min_heap = []  # Debtors
         max_heap = []  # Creditors
 
-        # Create min and max heaps
+        # create min and max heaps
         for i in range(n):
             if amount[i] < 0:
                 heapq.heappush(min_heap, (amount[i], i))  # Min-heap for debtors
@@ -80,7 +82,7 @@ class Solution:
                 heapq.heappush(max_heap, (-amount[i], i))  # Max-heap for creditors (negate amount)
 
         results = []
-        # Settle debts
+        # settle 
         while min_heap and max_heap:
             debt_amount, debtor = heapq.heappop(min_heap)
             credit_amount, creditor = heapq.heappop(max_heap)
@@ -100,6 +102,7 @@ class Solution:
 
 
 def read_db_to_adjacency_matrix():
+    """fetches all group transactions; constructs adjacency matrix to represent debts between individuals."""
     persons = set()  # Store unique person IDs
 
     # Using SQLAlchemy to query the Transaction model
@@ -221,6 +224,8 @@ def read_db_to_adjacency_matrix():
 
 # Function to implement the Ford-Fulkerson method for maximum flow problem
 def ford_fulkerson(graph, source, sink):
+    """find max flow from a source to a sink in a flow network."""
+
     parent = [-1] * len(graph)
     max_flow = 0
 
