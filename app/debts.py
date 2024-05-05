@@ -59,6 +59,31 @@ def init_debt_routes(app):
         # Define aliases for User model
         Payer = aliased(User, name='payer')
         Debtor = aliased(User, name='debtor')
+        
+         # Subquery for counting members in each group
+        member_count_subquery = db.session.query(
+            UserGroup.group_id.label('group_id'),
+            func.count('*').label('member_count')
+        ).group_by(UserGroup.group_id).subquery()
+
+        # Subquery for total transactions and total amounts per group
+        transaction_stats_subquery = db.session.query(
+            GroupTransaction.group_id.label('group_id'),
+            func.count('*').label('total_transactions'),
+            func.sum(GroupTransaction.amount).label('total_amount')
+        ).group_by(GroupTransaction.group_id).subquery()
+
+        # Main query to fetch group details
+        groups_query = db.session.query(
+            Group.id,
+            Group.name,
+            Group.created_at,
+            func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
+            func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
+            func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
+        ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
+        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+        .all()
 
 
         # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
@@ -73,7 +98,7 @@ def init_debt_routes(app):
         ).join(Payer, Payer.id == Transaction.payer_id) \
         .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
 
-        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
+        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions, groups=groups_query)
 
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
