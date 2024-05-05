@@ -181,6 +181,24 @@ def resolve_group_debts(group_id):
 
     return payment_instructions
 
+def read_db_to_adjacency_matrix():
+    transactions = GroupTransaction.query.all()
+    users = User.query.all()
+    matrix = {}
+    persons = {}
+
+    # Initialize matrix and persons dictionary
+    for user in users:
+        persons[user.id] = user.first_name  # Simplified; adjust as needed
+        for other_user in users:
+            matrix[(user.id, other_user.id)] = 0
+
+    # Populate matrix with transaction data
+    for transaction in transactions:
+        matrix[(transaction.debtor_id, transaction.payer_id)] += transaction.amount
+
+    return matrix, persons
+
 
 # Function to implement the Ford-Fulkerson method for maximum flow problem
 def ford_fulkerson(graph, source, sink):

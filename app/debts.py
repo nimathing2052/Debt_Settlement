@@ -26,67 +26,42 @@ def init_debt_routes(app):
             (Transaction.payer_id == current_user.id) | (Transaction.debtor_id == current_user.id)
         ).all()
         return render_template('result.html', transactions=transactions)
-    
+
     @app.route('/dashboard')
     def dashboard():
         if 'user_id' not in session:
             flash('Please log in to view the dashboard.', 'warning')
             return redirect(url_for('login'))
-        
+
         # Subquery for total credits per user
         credit_subquery = db.session.query(
             GroupTransaction.payer_id.label('user_id'),
-            func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
-        ).group_by(Transaction.payer_id).subquery()
+            func.sum(func.abs(GroupTransaction.amount)).label('total_credit')  # Using abs() to ensure positive values
+        ).group_by(GroupTransaction.payer_id).subquery()
 
         # Subquery for total debts per user
         debt_subquery = db.session.query(
             GroupTransaction.debtor_id.label('user_id'),
-            func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
-        ).group_by(Transaction.debtor_id).subquery()
+            func.sum(func.abs(GroupTransaction.amount)).label('total_debt')  # Using abs() to ensure positive values
+        ).group_by(GroupTransaction.debtor_id).subquery()
 
         # Main query to calculate net balances, total credits, and total debts
         net_balances = db.session.query(
             User.first_name, User.last_name,
             func.coalesce(credit_subquery.c.total_credit, 0).label('total_incomings'),
             func.coalesce(debt_subquery.c.total_debt, 0).label('total_outgoings'),
-            (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label('net_balance')
+            (func.coalesce(credit_subquery.c.total_credit, 0) - func.coalesce(debt_subquery.c.total_debt, 0)).label(
+                'net_balance')
         ).outerjoin(credit_subquery, User.id == credit_subquery.c.user_id) \
-        .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
-        .group_by(User.first_name, User.last_name) \
-        .all()
+            .outerjoin(debt_subquery, User.id == debt_subquery.c.user_id) \
+            .group_by(User.first_name, User.last_name) \
+            .all()
 
         # Define aliases for User model
         Payer = aliased(User, name='payer')
         Debtor = aliased(User, name='debtor')
-        
-         # Subquery for counting members in each group
-        member_count_subquery = db.session.query(
-            UserGroup.group_id.label('group_id'),
-            func.count('*').label('member_count')
-        ).group_by(UserGroup.group_id).subquery()
 
-        # Subquery for total transactions and total amounts per group
-        transaction_stats_subquery = db.session.query(
-            GroupTransaction.group_id.label('group_id'),
-            func.count('*').label('total_transactions'),
-            func.sum(GroupTransaction.amount).label('total_amount')
-        ).group_by(GroupTransaction.group_id).subquery()
-
-        # Main query to fetch group details
-        groups_query = db.session.query(
-            Group.id,
-            Group.name,
-            Group.created_at,
-            func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
-            func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
-            func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
-        ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
-        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
-        .all()
-
-
-        # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
+        # Fetch all transactions with payer and debtor details
         transactions = db.session.query(
             GroupTransaction.description,
             Payer.first_name.label('payer_first_name'),
@@ -96,10 +71,9 @@ def init_debt_routes(app):
             GroupTransaction.amount,
             GroupTransaction.created_at
         ).join(Payer, Payer.id == GroupTransaction.payer_id) \
-        .join(Debtor, Debtor.id == GroupTransaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
+            .join(Debtor, Debtor.id == GroupTransaction.debtor_id).all()
 
-        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions, groups=groups_query)
-
+        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
     def update_monetary_value():
@@ -195,22 +169,23 @@ def init_debt_routes(app):
 
     @app.route('/settle_up', methods=['GET', 'POST'])
     def settle_up():
-        if request.method == 'POST':
-            if 'user_id' not in session:
-                flash('Please log in to Settle Up Functions', 'warning')
-                return redirect(url_for('login'))
-            plot_file_2d, plot_file_3d = generate_complexity_plots()
+        if 'user_id' not in session:
+            flash('Please log in to Settle Up Functions', 'warning')
+            return redirect(url_for('login'))
 
+        if request.method == 'POST':
             try:
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                return render_template('result2.html', payments=payment_instructions, plot_file_2d=plot_file_2d,
-                                       plot_file_3d=plot_file_3d)
-            except NotFound:
-                flash('No transactions found to settle up.', 'warning')
+                if payment_instructions:
+                    return render_template('result2.html', payments=payment_instructions)
+                else:
+                    flash('No transactions found to settle up.', 'warning')
+                    return render_template('settle_up.html')
             except Exception as e:
                 flash(str(e), 'danger')
+                return render_template('settle_up.html')
 
         return render_template('settle_up.html')
 
@@ -298,9 +273,9 @@ def init_debt_routes(app):
             payer = User.query.get_or_404(payer_id)
             debtor = User.query.get_or_404(debtor_id)
             # Input validation for all fields:
-            if not debtor_id or debtor_id == payer_id:
-                flash('Invalid debtor specified.', 'warning')
-                return redirect(url_for('add_transaction_to_group'))
+            # if not debtor_id or debtor_id == payer_id:
+            #     flash('Invalid debtor specified.', 'warning')
+            #     return redirect(url_for('add_transaction_to_group'))
             if amount <= 0:
                 flash('Amount must be positive', 'warning')
                 return redirect(url_for('add_transaction_to_group'))
@@ -329,8 +304,7 @@ def init_debt_routes(app):
             .options(joinedload(
             GroupTransaction.payer)).all()  
         return render_template('view_group.html', group=group, transactions=transactions)
-    
-    
+
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')
@@ -339,8 +313,8 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
-            debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
+            credit_transactions = GroupTransaction.query.filter_by(payer_id=user_id).all()
+            debit_transactions = GroupTransaction.query.filter_by(debtor_id=user_id).all()
 
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
@@ -356,17 +330,16 @@ def init_debt_routes(app):
             }
 
             transactions = credit_transactions + debit_transactions
-            transactions.sort(key=lambda x: x.time_date, reverse=True)
-            
+            transactions.sort(key=lambda x: x.created_at, reverse=True)
+
             user_groups = Group.query.join(UserGroup).filter(UserGroup.user_id == user_id).all()
 
-
-            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions, user_groups=user_groups)
+            return render_template('dashboard_personal.html', monetary_values=monetary_values,
+                                   transactions=transactions, user_groups=user_groups)
 
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
-
 
     @app.route('/add_member_to_group', methods=['POST'])
     def add_member_to_group():
