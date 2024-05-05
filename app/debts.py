@@ -12,7 +12,7 @@ from .models.group import UserGroup
 from sqlalchemy.orm import joinedload
 from matplotlib import pyplot as plt
 from .algorithm_complexity import generate_complexity_plots
-
+from sqlalchemy.orm import joinedload
 
 def init_debt_routes(app):
 
@@ -313,8 +313,15 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            credit_transactions = GroupTransaction.query.filter_by(payer_id=user_id).all()
-            debit_transactions = GroupTransaction.query.filter_by(debtor_id=user_id).all()
+            credit_transactions = GroupTransaction.query.options(
+                joinedload(GroupTransaction.payer),
+                joinedload(GroupTransaction.debtor)
+            ).filter_by(payer_id=user_id).all()
+
+            debit_transactions = GroupTransaction.query.options(
+                joinedload(GroupTransaction.payer),
+                joinedload(GroupTransaction.debtor)
+            ).filter_by(debtor_id=user_id).all()
 
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
@@ -406,4 +413,4 @@ def init_debt_routes(app):
             selected_group = Group.query.get_or_404(group_id)  
             payment_instructions = resolve_group_debts(group_id)
 
-        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions)
+        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions,scrolled_to_instructions=True)

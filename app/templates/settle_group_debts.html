@@ -76,7 +76,21 @@
                 {% endfor %}
             </tbody>
         </table>
-        {{ groups.pagination_links }}
+{% if groups.pages > 1 %}
+        <ul class="pagination">
+            {% if groups.has_prev %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('your_route', page=groups.prev_num) }}">Previous</a></li>
+            {% endif %}
+            {% for page in range(1, groups.pages + 1) %}
+            <li class="page-item {{ 'active' if page == groups.page else '' }}">
+                <a class="page-link" href="{{ url_for('your_route', page=page) }}">{{ page }}</a>
+            </li>
+            {% endfor %}
+            {% if groups.has_next %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('your_route', page=groups.next_num) }}">Next</a></li>
+            {% endif %}
+        </ul>
+        {% endif %}
     {% else %}
         <p>No groups available.</p>
     {% endif %}
@@ -98,3 +112,14 @@
     {% endif %}
 </div>
 {% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const instructionsElement = document.getElementById('instructions');
+    if (instructionsElement) {
+        instructionsElement.scrollIntoView({ behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}
+
