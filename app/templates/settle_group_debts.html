@@ -1,39 +1,100 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<style>
+    .container {
+        font-family: Arial, sans-serif;
+    }
+    h3, h4 {
+        color: #333;
+    }
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    th {
+        background-color: #f8f8f8;
+    }
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+    .btn-success, .btn-primary {
+        color: white;
+        cursor: pointer;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.875rem;
+    }
+</style>
+
 <div class="container mt-3">
     <h3>Select Group for Debt Settlement</h3>
-    {% if groups %}
-        <ul>
-            {% for group in groups %}
-                <li>
-                    {{ group.name }}
-                    <form action="{{ url_for('settle_group_debts') }}" method="post">
-                        <input type="hidden" name="group_id" value="{{ group.id }}">
-                        <button type="submit" class="btn btn-sm btn-success">Settle</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
+    {% if groups.items %}
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Group Name</th>
+                    <th>Date Created</th>
+                    <th>Member Count</th>
+                    <th>Transaction Count</th>
+                    <th>Total Value of Transactions</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group in groups.items %}
+                <tr>
+                    <td>{{ group.name }}</td>
+                    <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ group.member_count }}</td>
+                    <td>{{ group.total_transactions }}</td>
+                    <td>€{{ "%.2f"|format(group.total_amount) }}</td>
+                    <td>
+                        <form action="{{ url_for('settle_group_debts', group_id=group.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="group_id" value="{{ group.id }}">
+                            <button type="submit" class="btn btn-sm btn-success">Settle</button>
+                        </form>
+                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-primary" style="display: inline;">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {{ groups.pagination_links }}
     {% else %}
-        <p>You don't belong to any groups.</p>
+        <p>No groups available.</p>
     {% endif %}
 
-<!-- Add this part to settle_group_debts.html -->
-{% if payment_instructions %}
+    {% if payment_instructions %}
     <div class="mt-4">
-        {% if group %}
-            <h4>Settlement Instructions for Group {{ group.name }}</h4>
-        {% else %}
-            <h4>Settlement Instructions</h4>
-        {% endif %}
-        <ul>
-            {% for instruction in payment_instructions %}
-                <li>{{ instruction }}</li>
-            {% endfor %}
-        </ul>
+        <h4>Settlement Instructions for Group {{ selected_group.name }}</h4>
+        <table>
+            <thead>
+                <tr><th>Instructions</th></tr>
+            </thead>
+            <tbody>
+                {% for instruction in payment_instructions %}
+                <tr><td>{{ instruction }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-{% endif %}
-
+    {% endif %}
 </div>
 {% endblock %}

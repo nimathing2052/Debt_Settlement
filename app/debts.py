@@ -15,12 +15,6 @@ from .algorithm_complexity import generate_complexity_plots
 
 
 def init_debt_routes(app):
-    @app.route("/user_profile")
-    def user_profile(title='Profile page'):
-        if 'user_id' not in session:
-            flash('Please log in to view your profile.', 'warning')
-            return redirect(url_for('login'))
-        return render_template('user_profile.html', title='Profile page')
 
     @app.route('/settle_debts')
     def settle_debts_view():
@@ -32,6 +26,7 @@ def init_debt_routes(app):
             (Transaction.payer_id == current_user.id) | (Transaction.debtor_id == current_user.id)
         ).all()
         return render_template('result.html', transactions=transactions)
+    
     @app.route('/dashboard')
     def dashboard():
         if 'user_id' not in session:
@@ -40,13 +35,13 @@ def init_debt_routes(app):
         
         # Subquery for total credits per user
         credit_subquery = db.session.query(
-            Transaction.payer_id.label('user_id'),
+            GroupTransaction.payer_id.label('user_id'),
             func.sum(func.abs(Transaction.amount)).label('total_credit')  # Using abs() to ensure positive values
         ).group_by(Transaction.payer_id).subquery()
 
         # Subquery for total debts per user
         debt_subquery = db.session.query(
-            Transaction.debtor_id.label('user_id'),
+            GroupTransaction.debtor_id.label('user_id'),
             func.sum(func.abs(Transaction.amount)).label('total_debt')  # Using abs() to ensure positive values
         ).group_by(Transaction.debtor_id).subquery()
 
@@ -64,21 +59,46 @@ def init_debt_routes(app):
         # Define aliases for User model
         Payer = aliased(User, name='payer')
         Debtor = aliased(User, name='debtor')
+        
+         # Subquery for counting members in each group
+        member_count_subquery = db.session.query(
+            UserGroup.group_id.label('group_id'),
+            func.count('*').label('member_count')
+        ).group_by(UserGroup.group_id).subquery()
+
+        # Subquery for total transactions and total amounts per group
+        transaction_stats_subquery = db.session.query(
+            GroupTransaction.group_id.label('group_id'),
+            func.count('*').label('total_transactions'),
+            func.sum(GroupTransaction.amount).label('total_amount')
+        ).group_by(GroupTransaction.group_id).subquery()
+
+        # Main query to fetch group details
+        groups_query = db.session.query(
+            Group.id,
+            Group.name,
+            Group.created_at,
+            func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
+            func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
+            func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
+        ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
+        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+        .all()
 
 
         # SEPARATE TABLE BELOW: Fetch all transactions with payer and debtor details
         transactions = db.session.query(
-            Transaction.item_name,
+            GroupTransaction.description,
             Payer.first_name.label('payer_first_name'),
             Payer.last_name.label('payer_last_name'),
             Debtor.first_name.label('debtor_first_name'),
             Debtor.last_name.label('debtor_last_name'),
-            Transaction.amount,
-            Transaction.time_date
-        ).join(Payer, Payer.id == Transaction.payer_id) \
-        .join(Debtor, Debtor.id == Transaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
+            GroupTransaction.amount,
+            GroupTransaction.created_at
+        ).join(Payer, Payer.id == GroupTransaction.payer_id) \
+        .join(Debtor, Debtor.id == GroupTransaction.debtor_id).all() # THIS IS WHERE ITEM NAME IS DROPPED, I TRIED TO GET IT TO WORK BUT COULDN'T
 
-        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions)
+        return render_template('dashboard.html', net_balances=net_balances, transactions=transactions, groups=groups_query)
 
 
     @app.route('/update_monetary_value', methods=['GET', 'POST'])
@@ -138,7 +158,7 @@ def init_debt_routes(app):
             flash('An error occurred while fetching monetary values.', 'danger')
             return redirect(url_for('user_profile'))
 
-    # Route to display the list of users and send money
+    
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
@@ -234,13 +254,34 @@ def init_debt_routes(app):
     def list_groups():
         page = request.args.get('page', 1, type=int)
         per_page = 10
-        try:
-            groups = Group.query.paginate(page=page, per_page=per_page, error_out=False)
-        except Exception as e:
-            print(f"Database error: {e}")
-            abort(500, description="Error accessing the database")
 
-        return render_template('list_groups.html', groups=groups, current_user=current_user)
+        member_count_subquery = db.session.query(
+            UserGroup.group_id.label('group_id'),
+            func.count('*').label('member_count')
+        ).group_by(UserGroup.group_id).subquery()
+
+        transaction_stats_subquery = db.session.query(
+            GroupTransaction.group_id.label('group_id'),
+            func.count('*').label('total_transactions'),
+            func.sum(GroupTransaction.amount).label('total_amount')
+        ).group_by(GroupTransaction.group_id).subquery()
+
+        try:
+            groups = db.session.query(
+                Group.id,
+                Group.name,
+                Group.created_at,
+                func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
+                func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
+                func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
+            ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
+            .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+            .paginate(page=page, per_page=per_page, error_out=False)
+        except Exception as e:
+            flash(f"Database error: {e}", 'error')
+            abort(500, description="Error accessing the database")
+        
+        return render_template('list_groups.html', groups=groups)
 
     @app.route('/add_transaction_to_group', methods=['GET', 'POST'])
     def add_transaction_to_group():
@@ -275,6 +316,8 @@ def init_debt_routes(app):
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
+        
+        
         users = User.query.all()
         groups = Group.query.all()
         return render_template('add_transaction_to_group.html', groups=groups, users=users)
@@ -282,12 +325,12 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-        # Ensure to join with the User model to fetch payer details
         transactions = GroupTransaction.query.filter_by(group_id=group_id) \
             .options(joinedload(
-            GroupTransaction.payer)).all()  # Assuming 'payer' is a relationship defined in GroupTransaction model
-
+            GroupTransaction.payer)).all()  
         return render_template('view_group.html', group=group, transactions=transactions)
+    
+    
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')
@@ -296,18 +339,14 @@ def init_debt_routes(app):
             return redirect(url_for('login'))
 
         try:
-            # Fetch credit and debit transactions
             credit_transactions = Transaction.query.filter_by(payer_id=user_id).all()
             debit_transactions = Transaction.query.filter_by(debtor_id=user_id).all()
 
-            # Sum up credits and debits
             total_credit = sum(transaction.amount for transaction in credit_transactions)
             total_debit = sum(transaction.amount for transaction in debit_transactions)
 
-            # Calculate net balance
             net_balance = total_credit - total_debit
 
-            # Prepare data for template
             monetary_values = {
                 'credits': credit_transactions,
                 'debts': debit_transactions,
@@ -316,15 +355,18 @@ def init_debt_routes(app):
                 'net_balance': net_balance
             }
 
-            # Combine credit and debit transactions for the transaction history table
             transactions = credit_transactions + debit_transactions
             transactions.sort(key=lambda x: x.time_date, reverse=True)
+            
+            user_groups = Group.query.join(UserGroup).filter(UserGroup.user_id == user_id).all()
 
-            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions)
+
+            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions, user_groups=user_groups)
 
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
+
 
     @app.route('/add_member_to_group', methods=['POST'])
     def add_member_to_group():
@@ -340,6 +382,7 @@ def init_debt_routes(app):
         flash('Member added successfully', 'success')
         return redirect(url_for('view_group.html', group_id=group_id))
 
+
     @app.route('/remove_member_from_group/<int:group_id>/<int:user_id>', methods=['POST'])
     def remove_member_from_group(group_id, user_id):
         user_group = UserGroup.query.filter_by(group_id=group_id, user_id=user_id).first()
@@ -351,11 +394,35 @@ def init_debt_routes(app):
             flash('Member not found', 'error')
         return redirect(url_for('view_group', group_id=group_id))
 
+
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
-        groups = Group.query.all()  # Fetch all groups
-        group = None  # Initialize group variable
+        page = request.args.get('page', 1, type=int)
+        per_page = 10
         payment_instructions = []
+        selected_group = None
+
+        member_count_subquery = db.session.query(
+            UserGroup.group_id.label('group_id'),
+            func.count('*').label('member_count')
+        ).group_by(UserGroup.group_id).subquery()
+
+        transaction_stats_subquery = db.session.query(
+            GroupTransaction.group_id.label('group_id'),
+            func.count('*').label('total_transactions'),
+            func.sum(GroupTransaction.amount).label('total_amount')
+        ).group_by(GroupTransaction.group_id).subquery()
+
+        groups = db.session.query(
+            Group.id,
+            Group.name,
+            Group.created_at,
+            func.coalesce(member_count_subquery.c.member_count, 0).label('member_count'),
+            func.coalesce(transaction_stats_subquery.c.total_transactions, 0).label('total_transactions'),
+            func.coalesce(transaction_stats_subquery.c.total_amount, 0).label('total_amount')
+        ).outerjoin(member_count_subquery, Group.id == member_count_subquery.c.group_id) \
+        .outerjoin(transaction_stats_subquery, Group.id == transaction_stats_subquery.c.group_id) \
+        .paginate(page=page, per_page=per_page, error_out=False)
 
         if request.method == 'POST':
             if 'user_id' not in session:
@@ -363,11 +430,7 @@ def init_debt_routes(app):
                 return redirect(url_for('login'))
 
             group_id = request.form.get('group_id', type=int)
-            group = Group.query.get_or_404(group_id)  # Fetch the group
-            transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
+            selected_group = Group.query.get_or_404(group_id)  
             payment_instructions = resolve_group_debts(group_id)
 
-        return render_template('settle_group_debts.html', groups=groups, group=group,
-                               payment_instructions=payment_instructions)
-
-
+        return render_template('settle_group_debts.html', groups=groups, selected_group=selected_group, payment_instructions=payment_instructions)

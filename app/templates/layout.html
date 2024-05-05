@@ -97,43 +97,40 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">HOME</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
                     {% if 'user_id' in session %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownFinance" role="button" data-toggle="dropdown">FINANCES</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="{{ url_for('create_group') }}">New Group</a>
+                            <a class="dropdown-item" href="{{ url_for('create_group') }}">Create Group</a>
                             <a class="dropdown-item" href="{{ url_for('list_groups') }}">List Groups</a>
-                            <a class="dropdown-item" href="{{ url_for('add_transaction_to_group') }}">New Entry</a>
+                            <a class="dropdown-item" href="{{ url_for('add_transaction_to_group') }}">Add Expense</a>
                             <a class="dropdown-item" href="{{ url_for('settle_group_debts') }}">Settle Up</a>
-
-                            <!-- previous version
-                            <a class="dropdown-item" href="{{ url_for('input_debts') }}">New Entry</a>
-                            <a class="dropdown-item" href="{{ url_for('show_monetary_values') }}">Balance</a>
-                            <a class="dropdown-item" href="{{ url_for('settle_up') }}">Settle Up!</a>
-                            <a class="dropdown-item" href="{{ url_for('settle_group_debts') }}">Settle Group Debts</a>
-                            -->
                         </div>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownDashboard" role="button" data-toggle="dropdown">DASHBOARDS</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="{{ url_for('dashboard') }}">Overall Dashboard</a>
-                            <a class="dropdown-item" href="{{ url_for('dashboard_personal') }}">Personal Dashboard</a>
+                            <a class="dropdown-item" href="{{ url_for('dashboard') }}">Overall App Dashboard</a>
+                            <a class="dropdown-item" href="{{ url_for('dashboard_personal') }}">Personal Dashboard for {{ session.first_name }}</a>
                         </div>
-                    </li>
-                    <!-- no need for group menu
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownGroup" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> GROUP SETTLEMENT</a>
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownGroup" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> GROUPS</a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownGroup">
                             <a class="dropdown-item" href="{{ url_for('create_group') }}">Create Group</a>
-                            <a class="dropdown-item" href="{{ url_for('list_groups') }}">List Groups</a>
+                            <a class="dropdown-item" href="{{ url_for('list_groups') }}">View Groups</a>
                             <a class="dropdown-item" href="{{ url_for('add_transaction_to_group') }}">Add Group Transaction</a>
                         </div>
                     </li>
-                    -->
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('settle_group_debts') }}">Settle</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('add_transaction_to_group') }}">Add Expense!</a></li>
                     {% endif %}
                 </ul>
                 
+
+
+
+
+
                 <!-- Right-aligned items -->
                 <ul class="navbar-nav">
                   {% if 'user_id' in session %}
