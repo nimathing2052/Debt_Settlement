@@ -169,22 +169,23 @@ def init_debt_routes(app):
 
     @app.route('/settle_up', methods=['GET', 'POST'])
     def settle_up():
-        if request.method == 'POST':
-            if 'user_id' not in session:
-                flash('Please log in to Settle Up Functions', 'warning')
-                return redirect(url_for('login'))
-            plot_file_2d, plot_file_3d = generate_complexity_plots()
+        if 'user_id' not in session:
+            flash('Please log in to Settle Up Functions', 'warning')
+            return redirect(url_for('login'))
 
+        if request.method == 'POST':
             try:
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                return render_template('result2.html', payments=payment_instructions, plot_file_2d=plot_file_2d,
-                                       plot_file_3d=plot_file_3d)
-            except NotFound:
-                flash('No transactions found to settle up.', 'warning')
+                if payment_instructions:
+                    return render_template('result2.html', payments=payment_instructions)
+                else:
+                    flash('No transactions found to settle up.', 'warning')
+                    return render_template('settle_up.html')
             except Exception as e:
                 flash(str(e), 'danger')
+                return render_template('settle_up.html')
 
         return render_template('settle_up.html')
 
@@ -272,9 +273,9 @@ def init_debt_routes(app):
             payer = User.query.get_or_404(payer_id)
             debtor = User.query.get_or_404(debtor_id)
             # Input validation for all fields:
-            if not debtor_id or debtor_id == payer_id:
-                flash('Invalid debtor specified.', 'warning')
-                return redirect(url_for('add_transaction_to_group'))
+            # if not debtor_id or debtor_id == payer_id:
+            #     flash('Invalid debtor specified.', 'warning')
+            #     return redirect(url_for('add_transaction_to_group'))
             if amount <= 0:
                 flash('Amount must be positive', 'warning')
                 return redirect(url_for('add_transaction_to_group'))

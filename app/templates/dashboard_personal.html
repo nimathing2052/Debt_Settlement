@@ -92,14 +92,23 @@
         </div>
     </footer>
 </body>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<div id="groupsContainer"></div>
+<div id="transactionsContainer"></div>
+
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
+    // Load groups data
+    $('#groupsContainer').load('/path/to/groups/data');
+
+    // Load transactions data
+    $('#transactionsContainer').load('/path/to/transactions/data', function() {
         $('#transactionsTable').DataTable({
-            "order": [[4, "desc"]],
+            "deferRender": true,
+            "order": [[4, "desc"]]
         });
     });
+});
+</script>
+
 </script>
 {% endblock %}
