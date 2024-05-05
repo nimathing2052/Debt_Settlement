@@ -8,11 +8,6 @@
     <style>
         .mt-3 { margin-top: 16px; }
         .mb-4 { margin-bottom: 16px; }
-        .footer {
-            background-color: #f8f8f8;
-            padding: 20px;
-            text-align: center;
-        }
         .table-striped tbody tr:nth-of-type(odd) {
             background-color: rgba(0,0,0,.05);
         }
@@ -21,6 +16,7 @@
 <body>
     <div class="container">
         <h3 class="mt-3">Your Personal Finances Overview</h3>
+        <br>
         <div>
             <h5>Your Net Debts</h5>
             <ul>
@@ -36,7 +32,9 @@
                 </form>
             </div>
         </div>
+        <br>
         <hr>
+        <br>
         <h5 class="mb-4">Your Groups</h5>
         <table class="table table-striped">
             <thead class="thead-dark">
@@ -60,7 +58,7 @@
                 {% endfor %}
             </tbody>
         </table>
-
+        <br>
         <h5 class="mb-4">A Short History of Your Transactions</h5>
         <table id="transactionsTable" class="table table-striped">
             <thead>
@@ -85,12 +83,6 @@
             </tbody>
         </table>
     </div>
-    <footer class="footer">
-        <div class="container">
-            <span class="text-muted">Links: <a href="/about">About</a> | <a href="/home">Home</a> | <a href="https://github.com/nimathing2052/Debt_Settlement">GitHub</a></span>
-            <span class="text-muted" style="float: right;">&copy; 2024 ClearSkies</span>
-        </div>
-    </footer>
 </body>
 <div id="groupsContainer"></div>
 <div id="transactionsContainer"></div>
