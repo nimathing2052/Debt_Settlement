@@ -4,6 +4,25 @@
 <html>
 <head>
     <title>Your Personal Dashboard</title>
+    <style>
+        .collapsible {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .collapsible p {
+            display: none;
+            padding: 5px;
+        }
+        .collapsible ul.hidden {
+            display: none; /* Hide the list by default */
+        }
+        .collapsible.active p {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <br>
@@ -26,17 +45,17 @@
     <br>
     <hr>
     <br>
-        <h5 class="mb-4">A Short History of Your Transactions</h5>
-            <table id="transactionsTable" class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Payer Name</th>
-                    <th>Payee Name</th>
-                    <th>Item Name</th>
-                    <th>Amount ($)</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
+    <h5 class="mb-4">A Short History of Your Transactions</h5>
+    <table id="transactionsTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Payer Name</th>
+                <th>Payee Name</th>
+                <th>Item Name</th>
+                <th>Amount ($)</th>
+                <th>Date</th>
+            </tr>
+        </thead>
         <tbody>
             {% for transaction in transactions %}
                 <tr>

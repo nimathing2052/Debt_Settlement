@@ -2,8 +2,29 @@
 {% block content %}
 <head>
     <title>Dashboard</title>
+    <style>
+        .collapsible {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .collapsible p {
+            display: none;
+            padding: 5px;
+        }
+        .collapsible ul.hidden {
+            display: none; /* Hide the list by default */
+        }
+        .collapsible.active p {
+            display: block;
+        }
+    </style>
 </head>
 <body>
+    <br>
+    <h3>ClearSkies Overview: Your Financial Dashboard</h3>
     <div class="container mt-5">
         <h5 class="mb-3"> Net Balances of All Users on the App</h5>
         <table class="table table-striped">
@@ -33,39 +54,36 @@
             </tbody>
         </table>
     </div>
-
-    <br>
     <div class="container mt-3">
         <button type="submit" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
     </div>
     <br>
     <hr>
-    <br>
-    <h5 class="mb-4">A Short History of All Transactions on the App!</h5>
-    <table id="transactionsTable" class="table table-striped">
-        <thead>
-            <tr>
-                <th>Payer Name</th>
-                <th>Payee Name</th>
-                <th>Item Name</th>
-                <th>Amount ($)</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-            <tr>
-                <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
-                <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
-                <td>{{ transaction.item_name }}</td>
-                <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount |  abs | round(2) }}</td>
-                <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
+    <div class="container mt-5">
+        <h5 class="mb-4">A Short History of All Transactions on the App</h5>
+        <table id="transactionsTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Payer Name</th>
+                    <th>Payee Name</th>
+                    <th>Item Name</th>
+                    <th>Amount ($)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
+                    <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
+                    <td>{{ transaction.item_name }}</td>
+                    <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount |  abs | round(2) }}</td>
+                    <td>{{ transaction.time_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -93,7 +111,6 @@
     });
 </script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js">
-
 </html>
 
 {% endblock %}
