@@ -1,5 +1,5 @@
 from flask import request, session, flash, redirect, url_for, render_template
-from app.models import User, Transaction, db
+from app.models import User, Transaction, db, Group
 
 def init_home_routes(app):
     @app.route('/', methods=['GET', 'POST'])
@@ -22,6 +22,6 @@ def init_home_routes(app):
                     flash('Missing item name or amount.', 'warning')
 
             user_name = session.get('user_name', 'Guest') 
-            return render_template('index.html', user_name=user_name, group_id=group_id)
+            return render_template('index.html', user_name=user_name)
         else:
             return redirect(url_for('login'))
