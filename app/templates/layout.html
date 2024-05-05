@@ -10,6 +10,7 @@
         body {
             font-family: Arial, sans-serif;
             background-color: rgb(197, 229, 255);
+            margin-bottom: 50px;
         }
         h1, h2, h3, h4, h5, h6 {
             color: #0b2337;
@@ -31,16 +32,25 @@
             padding-left: 10px;
             margin-left: 10px;
         }
-        button, input[type="submit"] { /* button settings */
-            border-radius: 20px;
-            padding: 6px 12px;
-            border: none;
+        button[type="submit"] { /* button settings */
             background-color: #3091f9;
-            color: #fff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
             cursor: pointer;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding-top: 0px;
+            padding-bottom: 5px;
+        }
+        .table {
+            font-size: 14px; /* Reduced font size for table */
         }
         input[type="text"], input[type="number"] { /* text box settings */
             border-radius: 10px;
@@ -61,14 +71,6 @@
         }
         .navbar-nav .nav-link {
             margin-right: 12px; /* margins added to navbar items */
-        }
-        .clouds {
-            position: absolute; /* cloud image settings*/
-            bottom: 0;
-            right: 0;
-            width: 600px;
-            height: auto;
-            z-index: -1;
         }
         .footer {
             padding: 10px 0;
@@ -131,11 +133,11 @@
                 <ul class="navbar-nav">
                   {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link border-left" href="{{ url_for('logout') }}">LOG OUT</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link border-left" href="{{ url_for('login') }}">LOG IN</a>
+                        <a class="nav-link" href="{{ url_for('login') }}">LOG IN</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">REGISTER</a>

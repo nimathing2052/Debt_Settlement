@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Input Debts</title>
     <style>
-        body {
-            font-family: sans-serif;
-        }
         #debt-form {
             max-width: 600px;
             margin: auto;
@@ -40,7 +37,8 @@
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Input Debts</h1>
+    <br>
+    <h3 style="text-align: center;">Input Debts</h3>
     <div id="debt-form">
         <form method="POST" action="{{ url_for('input_debts') }}">
             <div class="debt-entry">
@@ -52,14 +50,6 @@
                 <input type="number" id="amount" name="amount" step="0.01" required>
             </div>
             <div class="debt-entry">
-                <label for="debtor">Debtor (Who owes):</label>
-                <select id="debtor" name="debtor">
-                    {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="debt-entry">
                 <label for="payer">Payer (Who paid):</label>
                 <select id="payer" name="payer">
                     {% for user in users %}
@@ -67,6 +57,15 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="debt-entry">
+                <label for="debtor">Debtor (Who owes):</label>
+                <select id="debtor" name="debtor">
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br>
             <div style="text-align: center;">
                 <button type="submit">Submit Debt</button>
             </div>
