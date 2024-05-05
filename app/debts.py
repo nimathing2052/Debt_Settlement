@@ -288,6 +288,7 @@ def init_debt_routes(app):
             GroupTransaction.payer)).all()  # Assuming 'payer' is a relationship defined in GroupTransaction model
 
         return render_template('view_group.html', group=group, transactions=transactions)
+    
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')

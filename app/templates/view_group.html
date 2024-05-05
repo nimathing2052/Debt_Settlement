@@ -1,31 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    </head>
-<body>
-    <h2>Group Transactions</h2>
-    {% if transactions %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Payer</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transaction in transactions %}
-                    <tr>
-<td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
-        <td>{{ transaction.description }}</td>
-        <td>{{ transaction.amount }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No transactions yet.</p>
-    {% endif %}
+{% extends 'layout.html' %}
+{% block content %}
 
-    </body>
-</html>
+<style>
+    .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    .transactions-table thead tr {
+        background-color: #009879;
+        color: #ffffff;
+        text-align: left;
+    }
+    .transactions-table th,
+    .transactions-table td {
+        padding: 12px 15px;
+    }
+    .transactions-table tbody tr {
+        border-bottom: 1px solid #dddddd;
+    }
+    .transactions-table tbody tr:nth-of-type(even) {
+        background-color: #f3f3f3;
+    }
+    .transactions-table tbody tr:last-of-type {
+        border-bottom: 2px solid #009879;
+    }
+</style>
+
+<h2>Group Transactions</h2>
+{% if transactions %}
+    <table class="transactions-table">
+        <thead>
+            <tr>
+                <th>Payer</th>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.amount }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No transactions yet.</p>
+{% endif %}
+
+
+
+{% endblock %}
