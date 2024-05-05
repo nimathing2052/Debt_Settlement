@@ -15,12 +15,6 @@ from .algorithm_complexity import generate_complexity_plots
 
 
 def init_debt_routes(app):
-    @app.route("/user_profile")
-    def user_profile(title='Profile page'):
-        if 'user_id' not in session:
-            flash('Please log in to view your profile.', 'warning')
-            return redirect(url_for('login'))
-        return render_template('user_profile.html', title='Profile page')
 
     @app.route('/settle_debts')
     def settle_debts_view():
@@ -32,6 +26,7 @@ def init_debt_routes(app):
             (Transaction.payer_id == current_user.id) | (Transaction.debtor_id == current_user.id)
         ).all()
         return render_template('result.html', transactions=transactions)
+    
     @app.route('/dashboard')
     def dashboard():
         if 'user_id' not in session:
