@@ -64,6 +64,23 @@ You can test the live web application [here.](https://clear-sky-debt-settlement-
 
 ## Time and Space Complexity of the Application
 
+**1. Problem Setup:** In the context of our application, suppose we have a group of users who have engaged in financial transactions, where some owe money to others. The goal is to settle these debts to minimise the total number of transactions, making the process efficient and straightforward.
+
+**2. Structure Utilized:** The key structure in this problem is the representation of debts and credits between users in the form of an adjacency matrix. This matrix is a powerful tool for visualizing and computing net balances between all pairs of users. The adjacency matrix representation allows the algorithm to quickly access and update the debt relationships between individuals.
+
+**3. Algorithm Analysis:**
+- Building the Adjacency Matrix: Each cell in the matrix represents the net amount owed by one user to another. Constructing this matrix involves iterating over all transactions, which is $O(n)$, where n is the total number of transactions.
+- Min-Cash Flow Algorithm: The implemented solution uses two priority queues (heaps), one for creditors and one for debtors, to efficiently find and settle the largest debts and credits. This method is derived from the algorithm to minimize cash flow among a given set of friends who have borrowed money from each other.
+
+**4. Algorithm Complexity:**
+
+Time Complexity: $O(nlogn)$
+- Constructing Queues: $O(n log n)$. This complexity arises as each individual is potentially inserted into the heap (either minQ or maxQ based on whether they are a net debtor or creditor).
+- Solving Transactions: $O(n log n)$. Each transaction involves removing the top from a heap (either minQ or maxQ), which takes $O(n log n)$ per operation, and potentially this occurs for nearly all individuals.
+
+Space Complexity: $O(n)$
+- Queues: $O(n)$. The space is required to hold all individuals across the two priority queues.
+- Amount Array: $O(n)$. This array is used to calculate the net balance for each individual, which is essential for determining who owes and who is owed.
 
 ## How to Use ClearSkies
 
