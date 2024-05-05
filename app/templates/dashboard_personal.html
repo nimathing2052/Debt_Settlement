@@ -66,6 +66,32 @@
         </tbody>
     </table>
 
+
+    <h5 class="mb-4">Your Groups</h5>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Group Name</th>
+                <th>Date Created</th>
+                <th>Members</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in user_groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ len(group.users.all()) }} Members</td>  <!-- Ensure the counting of members is correct -->
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">You are not part of any groups.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
     <hr>
     <br>
     <h5 class="mb-4">A Short History of Your Transactions</h5>

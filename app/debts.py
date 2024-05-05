@@ -295,6 +295,8 @@ def init_debt_routes(app):
             db.session.commit()
             flash('Transaction added successfully', 'success')
             return redirect(url_for('view_group', group_id=group_id))
+        
+        
         users = User.query.all()
         groups = Group.query.all()
         return render_template('add_transaction_to_group.html', groups=groups, users=users)
@@ -306,6 +308,7 @@ def init_debt_routes(app):
             .options(joinedload(
             GroupTransaction.payer)).all()  
         return render_template('view_group.html', group=group, transactions=transactions)
+    
     
     @app.route('/dashboard_personal')
     def dashboard_personal():
@@ -333,12 +336,16 @@ def init_debt_routes(app):
 
             transactions = credit_transactions + debit_transactions
             transactions.sort(key=lambda x: x.time_date, reverse=True)
+            
+            user_groups = Group.query.join(UserGroup).filter(UserGroup.user_id == user_id).all()
 
-            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions)
+
+            return render_template('dashboard_personal.html', monetary_values=monetary_values, transactions=transactions, user_groups=user_groups)
 
         except Exception as e:
             flash('Error retrieving your data', 'error')
             return redirect(url_for('login'))
+
 
     @app.route('/add_member_to_group', methods=['POST'])
     def add_member_to_group():
@@ -354,6 +361,7 @@ def init_debt_routes(app):
         flash('Member added successfully', 'success')
         return redirect(url_for('view_group.html', group_id=group_id))
 
+
     @app.route('/remove_member_from_group/<int:group_id>/<int:user_id>', methods=['POST'])
     def remove_member_from_group(group_id, user_id):
         user_group = UserGroup.query.filter_by(group_id=group_id, user_id=user_id).first()
@@ -364,6 +372,7 @@ def init_debt_routes(app):
         else:
             flash('Member not found', 'error')
         return redirect(url_for('view_group', group_id=group_id))
+
 
     @app.route('/settle_group_debts', methods=['GET', 'POST'])
     def settle_group_debts():
