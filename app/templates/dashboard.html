@@ -13,9 +13,9 @@
                 <tr>
                     <th>First Name</th>
                     <th>Last Name</th>
-                    <th>Total Incomings ($)</th>
-                    <th>Total Outgoings ($)</th>
-                    <th>Net Balance ($)</th>
+                    <th>Total Incomings</th>
+                    <th>Total Outgoings</th>
+                    <th>Net Balance</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,8 +23,8 @@
                 <tr>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
-                    <td>${{ user.total_incomings | round(2) }}</td>
-                    <td>${{ user.total_outgoings | round(2) }}</td>
+                    <td>€{{ user.total_incomings | round(2) }}</td>
+                    <td>€{{ user.total_outgoings | round(2) }}</td>
                     <td style="color: {{ 'green' if user.net_balance >= 0 else 'red' }}">${{ user.net_balance | round(2) }}</td>
                 </tr>
                 {% else %}
@@ -39,32 +39,6 @@
         <button type="submit" class="btn btn-primary" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
     </div>
     <hr>
-    <div class="container mt-3">
-        <h2>Groups Overview</h2>
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Group Name</th>
-                    <th>Created At</th>
-                    <th>Member Count</th>
-                    <th>Total Transactions</th>
-                    <th>Total Transaction Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for group in groups %}
-                <tr>
-                    <td>{{ group.name }}</td>
-                    <td>{{ group.created_at.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ group.member_count }}</td>
-                    <td>{{ group.total_transactions }}</td>
-                    <td>${{ group.total_amount }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <hr>
     <div class="container mt-5">
         <h5 class="mb-4">A Short History of All Transactions on the App</h5>
         <table id="transactionsTable" class="table table-striped">
@@ -73,8 +47,9 @@
                     <th>Payer Name</th>
                     <th>Payee Name</th>
                     <th>Item Name</th>
-                    <th>Amount ($)</th>
+                    <th>Amount</th>
                     <th>Date</th>
+                    <th>Time</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,9 +57,10 @@
                 <tr>
                     <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
                     <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
-                    <td>{{ transaction.description }}</td>
-                    <td style="color: {{ 'green' if transaction.amount >= 0 else 'red' }}">${{ transaction.amount |  abs | round(2) }}</td>
-                    <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ transaction.item_name }}</td>
+                    <td> €{{ transaction.amount |  abs | round(2) }}</td>
+                    <td>{{ transaction.time_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ transaction.time_date.strftime('%H:%M') }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
