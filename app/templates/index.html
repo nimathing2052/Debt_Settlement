@@ -51,16 +51,16 @@
         <div class="section">
             <p>Do you have a new transaction?</p>
             <div class="debt-entry">
-                <a href="{{ url_for('add_transaction_to_group') }}" class="btn-link">New entry</a>
+                <a href="{{ url_for('add_transaction_to_group') }}" class="btn-link">Add an Expense</a>
             </div>
             <div class="debt-entry">
-                <a href="{{ url_for('create_group') }}" class="btn-link">New group</a>
+                <a href="{{ url_for('create_group') }}" class="btn-link">Create a New Group</a>
             </div>
         </div>
         <div class="section">
             <p>Let's settle some debts!</p>
             <div class="debt-entry">
-                <a href="{{ url_for('settle_up') }}" class="btn-link">Settle up</a>
+                <a href="{{ url_for('settle_group_debts') }}" class="btn-link">Settle up</a>
             </div>
             <div class="debt-entry">
                 <a href="{{ url_for('dashboard_personal') }}" class="btn-link">My dashboard</a>
