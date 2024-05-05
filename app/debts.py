@@ -9,6 +9,10 @@ from sqlalchemy.orm import aliased
 from .models import Group, GroupTransaction
 from flask_login import current_user
 from .models.group import UserGroup
+from sqlalchemy.orm import joinedload
+from matplotlib import pyplot as plt
+from .algorithm_complexity import generate_complexity_plots
+
 
 def init_debt_routes(app):
     @app.route("/user_profile")
@@ -135,7 +139,6 @@ def init_debt_routes(app):
             return redirect(url_for('user_profile'))
 
     # Route to display the list of users and send money
-
     @app.route('/input_debts', methods=['GET', 'POST'])
     def input_debts():
         if request.method == 'POST':
@@ -176,23 +179,20 @@ def init_debt_routes(app):
             if 'user_id' not in session:
                 flash('Please log in to Settle Up Functions', 'warning')
                 return redirect(url_for('login'))
+            plot_file_2d, plot_file_3d = generate_complexity_plots()
 
             try:
                 adjacency_matrix, persons = read_db_to_adjacency_matrix()
                 solver = Solution()
                 payment_instructions = solver.minCashFlow(adjacency_matrix, persons)
-                return render_template('result2.html', payments=payment_instructions)
+                return render_template('result2.html', payments=payment_instructions, plot_file_2d=plot_file_2d,
+                                       plot_file_3d=plot_file_3d)
             except NotFound:
                 flash('No transactions found to settle up.', 'warning')
             except Exception as e:
                 flash(str(e), 'danger')
 
         return render_template('settle_up.html')
-
-    def has_sufficient_funds(user_id, amount):
-        total_credit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.debtor_id == user_id).scalar() or 0
-        total_debit = db.session.query(db.func.sum(Transaction.amount)).filter(Transaction.payer_id == user_id).scalar() or 0
-        return (total_credit + total_debit) >= amount
 
     @app.route('/create_group', methods=['GET', 'POST'])
     def create_group():
@@ -254,7 +254,8 @@ def init_debt_routes(app):
             debtor_id = int(request.form.get('debtor_id'))  # Retrieve debtor_id from the form
             amount = request.form.get('amount', type=float)
             description = request.form.get('description', type=str)
-
+            payer = User.query.get_or_404(payer_id)
+            debtor = User.query.get_or_404(debtor_id)
             # Input validation for all fields:
             if not debtor_id or debtor_id == payer_id:
                 flash('Invalid debtor specified.', 'warning')
@@ -281,16 +282,12 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-        transactions = GroupTransaction.query.filter_by(group_id=group_id).all()
-        all_users = User.query.all()  # Assuming you still want to show all users for adding members
+        # Ensure to join with the User model to fetch payer details
+        transactions = GroupTransaction.query.filter_by(group_id=group_id) \
+            .options(joinedload(
+            GroupTransaction.payer)).all()  # Assuming 'payer' is a relationship defined in GroupTransaction model
 
-        # Authorization check
-        # if not has_view_permission(current_user, group_id):
-        #     flash('You are not authorized to view this group.', 'warning')
-        #     return redirect(url_for('list_groups'))
-        # Ensure the user is still a member of the group
-        return render_template('view_group.html', group=group, transactions=transactions, all_users=all_users)
-
+        return render_template('view_group.html', group=group, transactions=transactions)
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')

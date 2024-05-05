@@ -36,28 +36,8 @@
 
     <br>
     <div class="container mt-3">
-        <form action="{{ url_for('settle_up') }}" method="post">
-            <button type="submit" class="btn btn-success">Settle Up Amongst Your Group!</button>
-        </form>
+        <button type="button" onclick="location.href='{{ url_for('settle_group_debts') }}';">Settle up Among Groups</button>
     </div>
-    <br>
-
-    re: above settle up button: change it so that it doesn't redirect to a new web page, but stays here.
-    <br>
-    <br>
-    re: below table: make it 1. default ordering latest items first (I tried but couldn't get it to work); 2. searchable + orderable by a. payer, b. payee, c.time
-    <br>
-    <br>
-    re: below table: there's an issue with how item displays - normally it seems to be debt, even if in the input I called it something specific 
-    <br>
-    <br>
-    this comes from the `@app.route('/dashboard') def dashboard():` routing. I commented where the error occurs... i tried to fix it but i can't get it to work
-    <br>
-    <br>
-    to add: after settle up is clicked, offer a work flow to partially / fully settle up, where you input how much you have have paid and to whom and that is recorded in the database (ie it fully / partially wiped out the debts)
-
-    <br>
-    <br>
 
     <h2 class="mb-4">A Short History of All Transactions on the App!</h2>
     <table id="transactionsTable" class="table table-striped">
@@ -82,7 +62,7 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
+
 
 </body>
 

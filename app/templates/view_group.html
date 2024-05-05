@@ -16,9 +16,9 @@
             <tbody>
                 {% for transaction in transactions %}
                     <tr>
-                        <td>{{ transaction.first_name }} {{ transaction.last_name }}</td>
-                        <td>{{ transaction.description }}</td>
-                        <td>{{ transaction.amount }}</td>
+<td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
+        <td>{{ transaction.description }}</td>
+        <td>{{ transaction.amount }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
