@@ -18,6 +18,7 @@ class GroupTransaction(db.Model):
     payer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     payer = db.relationship('User', foreign_keys=[payer_id])
     debtor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    debtor = db.relationship('User', foreign_keys=[debtor_id])  
     debtor = db.relationship('User', foreign_keys=[debtor_id])
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.String(255))
