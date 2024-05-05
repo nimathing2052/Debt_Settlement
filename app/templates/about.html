@@ -8,31 +8,10 @@
     <meta charset="UTF-8">
     <title>About</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding-bottom: 50px;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        p {
-            margin-bottom: 10px;
-        }
-        .footer {
-            padding: 10px 0;
-            background-color: #f7f7f7;
-            text-align: left;
-            border-top: 1px solid #e7e7e7;
-        }
         .content {
             padding-bottom: 60px; /* make sure content does not overlap with footer */
         }
-                .collapsible {
+        .collapsible {
             background-color: #f1f1f1;
             padding: 10px;
             margin-bottom: 10px;
@@ -42,6 +21,17 @@
         .collapsible p {
             display: none;
             padding: 5px;
+        }
+        .collapsible.active {
+            background-color: #3091f9a7; /* Change background color when active */
+        }
+        .collapsible::after {
+            content: '\25BC'; /* Unicode downward arrow */
+            float: right;
+            margin-left: 5px;
+        }
+        .collapsible.active::after {
+            content: '\25B2'; /* Unicode upward arrow when active */
         }
         .collapsible ul.hidden {
             display: none; /* Hide the list by default */
@@ -62,6 +52,8 @@
         <h5><i>About ClearSkies</i></h5>
         <div class="collapsible">
             <p><i>ClearSkies</i> is dedicated to simplifying your financial management experience.</p>
+            <p>As you explore our platform, you'll find intuitive features such as adding users, creating groups, managing expenses with automated splitting, and effortlessly tracking your overall transactions through our Personal and Overall Dashboards.</p>
+            <p>Get ready to experience debt settlement like never before!</p>
         </div>
         <br>
         <h5><i>How it Works</i></h5>
