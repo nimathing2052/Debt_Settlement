@@ -59,7 +59,6 @@
             {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
-                    <td>{{ transaction.debtor.first_name }} {{ transaction.debtor.last_name }}</td>
                     <td>{{transaction.debtor.first_name}} {{transaction.debtor.last_name }}</td>
                     <td>{{ transaction.description }}</td>
                     <td>€{{ "%.2f"|format(transaction.amount) }}</td>
