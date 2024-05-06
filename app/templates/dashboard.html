@@ -25,7 +25,7 @@
                     <td>{{ user.last_name }}</td>
                     <td>€{{ user.total_incomings | round(2) }}</td>
                     <td>€{{ user.total_outgoings | round(2) }}</td>
-                    <td style="color: {{ 'green' if user.net_balance >= 0 else 'red' }}">${{ user.net_balance | round(2) }}</td>
+                    <td style="color: {{ 'green' if user.net_balance >= 0 else 'red' }}">€{{ user.net_balance | round(2) }}</td>
                 </tr>
                 {% else %}
                 <tr>
@@ -46,7 +46,7 @@
                 <tr>
                     <th>Payer Name</th>
                     <th>Debtor Name</th>
-                    <th>Item Name</th>
+<!--                    <th>Item Name</th>-->
                     <th>Amount</th>
                     <th>Date</th>
                     <th>Time</th>
@@ -57,7 +57,7 @@
                 <tr>
                     <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
                     <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
-                    <td>{{ transaction.description }}</td>
+<!--                    <td>{{ transaction.description }}</td>-->
                     <td> €{{ transaction.amount |  abs | round(2) }}</td>
                     <td>{{ transaction.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>{{ transaction.created_at.strftime('%H:%M') }}</td>
