@@ -25,9 +25,13 @@
     tr:hover {
         background-color: #f1f1f1;
     }
-    .btn-success, .btn-primary {
+    .btn {
         color: white;
         cursor: pointer;
+        padding: 5px 10px;
+        font-size: 0.875rem; /* Small font size for all buttons */
+        margin: 2px; /* Small margin to avoid congestion */
+        display: inline-block; /* Necessary for alignment */
     }
     .btn-success {
         background-color: #28a745;
@@ -37,14 +41,15 @@
         background-color: #007bff;
         border-color: #007bff;
     }
-    .btn-sm {
-        padding: 5px 10px;
-        font-size: 0.875rem;
+    .action-cell {
+        display: flex; /* Use flexbox to align buttons */
+        align-items: center; /* Align buttons vertically */
+        justify-content: start; /* Align buttons to the start of the cell */
     }
 </style>
 
 <div class="container mt-3">
-    <h3>Available Groups</h3> 
+    <h3>Available Groups</h3>
     {% if groups.items %}
         <table class="table table-striped">
             <thead class="thead-dark">
@@ -65,12 +70,13 @@
                     <td>{{ group.member_count }}</td>
                     <td>{{ group.total_transactions }}</td>
                     <td>€{{ "%.2f"|format(group.total_amount) }}</td>
-                    <td>
-                        <form action="{{ url_for('settle_group_debts', group_id=group.id) }}" method="post" style="display: inline;">
+                    <td class="action-cell">
+                        <form action="{{ url_for('settle_group_debts', group_id=group.id) }}" method="post" style="margin-right: 5px;">
                             <input type="hidden" name="group_id" value="{{ group.id }}">
                             <button type="submit" class="btn btn-sm btn-success">Settle</button>
                         </form>
-                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-primary" style="display: inline;">View</a>
+                        <a href="{{ url_for('view_group', group_id=group.id) }}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{{ url_for('add_transaction_to_group', group_id=group.id) }}" class="btn btn-sm btn-primary">Add an Expense</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -3,30 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask App</title>
+    <title>ClearSkies: Lightening Your Financial Load</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='lightening-fav.png') }}">
+
     <style>
+        html, body {
+        height: 100%; /* Full height */
+        margin: 0; /* Remove default margin */
+        padding: 0; /* Remove default padding */
+    }
         /* Font and Color Styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: rgb(197, 229, 255);
-            margin-bottom: 50px;
-        }
+       body {
+        background-image: url('/static/rest_layout.png'); /* Ensure this is the correct path */
+        background-size: cover; /* Cover the entire page */
+        background-position: center; /* Center the background image */
+        background-repeat: no-repeat; /* No repeating the background */
+        background-attachment: fixed; /* Fixed background on scroll */
+    }
         h1, h2, h3, h4, h5, h6 {
             color: #0b2337;
         }
-        .navbar-dark .navbar-brand {
-            color: #ffffff !important; /* ClearSkies color */
-        }
-        .navbar-dark .navbar-nav .nav-link {
-            color: #0b2337 !important; /* navbar links */
-        }
-        .navbar-dark .navbar-nav .nav-link:hover {
-            color: #15466d !important; /* navbar links hover */
-        }
-        .navbar-dark {
-        background-color: #3091f9 !important; /* navbar background */
-        }
+.navbar-dark {
+        background-color: rgba(255, 255, 255, 0.8) !important; /* Semi-transparent white */
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Soft border for distinction */
+    }
+    .navbar-dark .navbar-brand, .navbar-dark .navbar-nav .nav-link {
+        color: #3091f9 !important; /* Matching your theme's blue, ensures readability */
+    }
+    .navbar-dark .navbar-nav .nav-link:hover {
+        color: #15466d !important; /* Darker shade on hover */
+        background-color: rgba(255, 255, 255, 0.3); /* Light highlight on hover */
+    }
         .border-left {
             border-left: 1px solid #ffffff;
             padding-left: 10px;
@@ -72,12 +80,10 @@
         .navbar-nav .nav-link {
             margin-right: 12px; /* margins added to navbar items */
         }
-        .footer {
-            padding: 10px 0;
-            background-color: #f7f7f7;
-            text-align: left;
-            border-top: 1px solid #e7e7e7;
-        }
+  .footer {
+        background-color: rgba(255, 255, 255, 2); /* Semi-transparent white */
+        color: #333; /* For footer text color */
+    }
         .footer-links a {
             color: #007bff;
             text-decoration: none;

@@ -300,11 +300,25 @@ def init_debt_routes(app):
     @app.route('/group/<int:group_id>')
     def view_group(group_id):
         group = Group.query.get_or_404(group_id)
-        transactions = GroupTransaction.query.filter_by(group_id=group_id) \
-            .options(joinedload(
-            GroupTransaction.payer)).all()  
-        return render_template('view_group.html', group=group, transactions=transactions)
+        Payer = aliased(User, name='payer')
+        Debtor = aliased(User, name='debtor')
 
+        # Fetch all necessary transaction details including the description
+        transactions = db.session.query(
+            GroupTransaction.amount,
+            GroupTransaction.created_at,
+            GroupTransaction.description,  # Ensure description is retrieved
+            Payer.first_name.label('payer_first_name'),
+            Payer.last_name.label('payer_last_name'),
+            Debtor.first_name.label('debtor_first_name'),
+            Debtor.last_name.label('debtor_last_name')
+        ).join(Payer, Payer.id == GroupTransaction.payer_id) \
+            .join(Debtor, Debtor.id == GroupTransaction.debtor_id) \
+            .filter(GroupTransaction.group_id == group_id) \
+            .all()
+
+        # Pass the group info and transactions to the template
+        return render_template('view_group.html', group=group, transactions=transactions)
     @app.route('/dashboard_personal')
     def dashboard_personal():
         user_id = session.get('user_id')

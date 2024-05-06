@@ -58,9 +58,9 @@
         <tbody>
             {% for transaction in transactions %}
                 <tr>
-                    <td>{{ transaction.payer.first_name }} {{ transaction.payer.last_name }}</td>
-                    <td>{{transaction.debtor.first_name}} {{transaction.debtor.last_name }}</td>
-                    <td>{{ transaction.description }}</td>
+   <td>{{ transaction.payer_first_name }} {{ transaction.payer_last_name }}</td>
+    <td>{{ transaction.debtor_first_name }} {{ transaction.debtor_last_name }}</td>
+    <td>{{ transaction.description }}</td>
                     <td>€{{ "%.2f"|format(transaction.amount) }}</td>
                     <td>{{ transaction.created_at.strftime('%Y-%m-%d') }}</td>
                     <td>{{ transaction.created_at.strftime('%H:%M') }}</td>
